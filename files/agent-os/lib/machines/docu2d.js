@@ -336,6 +336,7 @@ async function fetchVerified(run, name, queries, srcs, used, bdir, rejected) {
         const content = [{ type: "text", text: [
           `Ces deux images viennent du même plan vidéo, prévu pour illustrer un documentaire sur : ${run.params.subject} (${sp}).`,
           `Plan attendu : « ${q} ».`,
+          `Titre / adresse de la vidéo chez la source (indice fiable sur l'espèce) : « ${(c.page || c.title || "").split("/").filter(Boolean).pop() || "inconnu"} ».`,
           `- species : l'animal principal que tu vois (nom courant + scientifique si possible) ;`,
           `- ok : true SEULEMENT si c'est exactement cette espèce (${sp}), pas une espèce voisine (ex. buffle d'eau asiatique ≠ buffle d'Afrique, éléphant d'Asie ≠ d'Afrique) ;`,
           `- real : true si c'est une vraie vidéo filmée (pas un dessin, une 3D, un écran, un texte) ;`,
@@ -486,12 +487,22 @@ async function stepPackage(run) {
   const p = await askJson([
     `Packaging YouTube (${lang}) d'un documentaire animalier papier découpé. Titre de travail : « ${run.script.title} ». Sujet : ${run.params.subject}. Angle : ${run.meta.angle}.`,
     "- title : formule de la niche, 45-80 caractères, sans emoji ni majuscules criardes (« Pourquoi [créature] [paradoxe] », « Le [animal] le plus [x] du monde », « J'ai lâché [créature] dans [N] [mondes] ») ;",
-    "- hook : 2 phrases de description qui donnent envie (le fait le plus fort de la vidéo, sans rien inventer) ;",
+    "- hook : 2 phrases de description qui donnent envie, UNIQUEMENT avec des faits du registre (aucun superlatif ni record absent du registre) ;",
     "- tags : 18-28 tags du plus précis au plus large ; - thumbText : 2 ou 3 mots MAX en majuscules pour la miniature ; - titleAlt : 2 titres alternatifs.",
     `FAITS DE LA VIDÉO : ${JSON.stringify((run.facts || []).slice(0, 25).map((f) => f.claim))}`,
     `TITRES QUI MARCHENT DANS LA NICHE (codes à réutiliser, jamais copier) : ${JSON.stringify(nicheTitles(30).map((v) => `${v.title} (${v.views})`))}`,
     'JSON UNIQUEMENT : {"title":"","hook":"","tags":[""],"thumbText":"","titleAlt":["",""]}',
   ].join("\n"), "Packaging");
+  // RELECTURE : la description et le titre ne contiennent QUE des faits du registre (vécu : « l'animal qui tue le plus d'humains du continent », inventé)
+  try {
+    const rv = await askJson([
+      "Vérifie ce titre et ce texte de description YouTube contre le registre de faits. Toute affirmation absente du registre (superlatif, record, « le plus… », chiffre) doit être retirée ou réécrite fidèlement.",
+      "REGISTRE : " + JSON.stringify(run.facts), "TITRE : " + p.title, "TEXTE : " + p.hook,
+      'JSON UNIQUEMENT : {"title":"titre corrigé (ou identique)","hook":"texte corrigé (ou identique)","changed":false}',
+    ].join("\n"), "Relecture packaging");
+    if (rv.hook) p.hook = rv.hook; if (rv.title) p.title = rv.title;
+    if (rv.changed) log(run, "🔎 Relecture du packaging : affirmation non sourcée retirée du titre / de la description");
+  } catch (e) { log(run, "relecture packaging : " + e.message.slice(0, 100)); }
   addCost(run, "llm", 0.01, "openrouter", "packaging");
   const brand = config().settings.brand;
   const desc = [p.hook || "", "", B.L ? "Chapitres" : "Chapters", ...B.chapters, "", B.L ? "Sources des faits" : "Fact sources", ...B.facts.map((u) => `• ${u}`),
