@@ -34,4 +34,6 @@
         }
       } catch (e) { return json(res, 400, { error: e.message }); }
     }
+    if (p === "/api/machines/docu2d/bestiary" && req.method === "GET") return json(res, 200, docu2d.bestiary());
+    if (p === "/api/machines/docu2d/bestiary/render" && req.method === "POST") { try { return json(res, 200, await docu2d.renderBestiary()); } catch (e) { return json(res, 500, { error: e.message }); } }
     // ===== FIN MACHINE DOCU PAPIER 2D =====

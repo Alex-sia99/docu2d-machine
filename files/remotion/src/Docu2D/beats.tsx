@@ -2,7 +2,7 @@
 // le contenu est calculé, les sous-éléments entrent sur LEUR mot (`_t`), tout sort avec la carte.
 import React from "react";
 import { Img, OffthreadVideo, staticFile } from "remotion";
-import { Tag, Badge, Card, BigNum, Chapters, K, PF, ease, popK, vis, lerp, cl } from "./paper";
+import { Tag, Badge, Card, BigNum, Chapters, LikeSub, K, PF, ease, popK, vis, lerp, cl } from "./paper";
 import { icon } from "./icons2";
 import { QuadP, SPECIES, REAL, partPos } from "./bestiary";
 import { PersonFront } from "../cast2d/people";
@@ -47,7 +47,7 @@ export const BigNumCard: React.FC<P> = ({ b, T }) => (
   <Card T={T} t0={b.t0} t1={b.t1} w={1100} h={620} y={480} bg={K.cream}>
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 10 }}>
       {b.icon && <svg width={150} height={150} viewBox="-50 -50 100 100" style={{ transform: `scale(${popK(T, b.t0 + 0.15)})` }}>{icon(b.icon)}</svg>}
-      <div style={{ position: "relative", width: 1000, height: 200 }}><BigNum T={T} t0={b.t0 + 0.25} t1={b.t1} x={500} y={100} n={b.n} unit={b.unit} col={K.ink} unitCol={K.orange} size={150} /></div>
+      <div style={{ position: "relative", width: 1000, height: 200 }}><BigNum T={T} t0={b.t0 + 0.25} t1={b.t1} x={500} y={100} n={b.n} unit={b.unit} col={K.ink} unitCol={K.orange} size={String(b.n).length + String(b.unit || "").length > 13 ? 84 : String(b.n).length + String(b.unit || "").length > 9 ? 110 : 150} /></div>
       {b.sub && <div style={{ fontFamily: PF, fontWeight: 700, fontSize: 36, color: K.teal, opacity: cl((T - b.t0 - 0.5) / 0.3), textAlign: "center", maxWidth: 950 }}>{b.sub}</div>}
     </div>
   </Card>
@@ -152,7 +152,7 @@ export const MapCard: React.FC<P> = ({ b, T, sb }) => {
               <g transform={`translate(28,-44) scale(${k})`}><rect x={0} y={-30} width={(p.label?.length ?? 6) * 19 + 34} height={48} rx={6} fill={K.ink} /><text x={17} y={3} fontFamily={PF} fontWeight={800} fontSize={28} fill="#fff">{p.label}</text></g>
             </g>;
           })}
-          {(b.labels || []).length === 0 && hi.size > 0 && T > b.t0 + 1.1 && [...hi].slice(0, 1).map((k) => C[k] && <text key={k} x={C[k].label[0]} y={C[k].label[1] + 34 / z} textAnchor="middle" fontFamily={PF} fontWeight={800} fontSize={44 / z} fill={K.ink}>{C[k][lang]}</text>)}
+          {(b.names || []).filter((k: string) => C[k]).map((k: string) => T > b.t0 + 1.1 && <text key={k} x={C[k].label[0]} y={C[k].label[1] + 34 / z} textAnchor="middle" fontFamily={PF} fontWeight={800} fontSize={44 / z} fill={K.ink}>{C[k][lang]}</text>)}
         </g>
       </svg>
     </Card>
@@ -249,9 +249,23 @@ export const OutroCard: React.FC<P> = ({ b, T }) => (
   </Card>
 );
 
+const END_L: Record<string, { like: string; sub: string; subbed: string }> = { fr: { like: "J'aime", sub: "S'abonner", subbed: "Abonné" }, en: { like: "Like", sub: "Subscribe", subbed: "Subscribed" }, es: { like: "Me gusta", sub: "Suscribirse", subbed: "Suscrito" }, de: { like: "Mag ich", sub: "Abonnieren", subbed: "Abonniert" }, pt: { like: "Gostei", sub: "Inscrever-se", subbed: "Inscrito" }, it: { like: "Mi piace", sub: "Iscriviti", subbed: "Iscritto" } };
+/** Écran de fin : question en commentaire + J'aime / S'abonner cliqués, tenu jusqu'au bout de la vidéo. */
+export const EndCard: React.FC<P> = ({ b, T, sb }) => (
+  <>
+    <Card T={T} t0={b.t0} t1={b.t1 + 60} w={1300} h={380} y={330}>
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 22 }}>
+        <svg width={120} height={100} viewBox="0 0 140 120"><path d="M10,10 L130,10 L130,80 L60,80 L30,110 L34,80 L10,80 Z" fill={K.orange} /><circle cx={45} cy={45} r={7} fill="#fff" /><circle cx={70} cy={45} r={7} fill="#fff" /><circle cx={95} cy={45} r={7} fill="#fff" /></svg>
+        <Title text={b.text} size={52} />
+      </div>
+    </Card>
+    <div style={{ position: "absolute", inset: 0, transform: "translateY(250px)" }}><LikeSub T={T} t0={b.t0 + 1.2} tLike={b.t0 + 2.6} tSub={b.t0 + 4.0} labels={END_L[sb.meta.lang] || END_L.en} /></div>
+  </>
+);
+
 export const CARDS: Record<string, React.FC<P>> = {
   title: TitleCard, toc: TocCard, chapter: ChapterCard, bignum: BigNumCard, compare: CompareCard, bars: BarsCard, broll: BrollCard, photo: BrollCard,
-  map: MapCard, anatomy: AnatomyCard, quiz: QuizCard, timeline: TimelineCard, quote: QuoteCard, icons: IconsCard, outro: OutroCard,
+  map: MapCard, anatomy: AnatomyCard, quiz: QuizCard, timeline: TimelineCard, quote: QuoteCard, icons: IconsCard, outro: OutroCard, end: EndCard,
 };
 /** emplacements d'étiquettes : sous la carte (2) ou dans le monde (3). */
 export const tagSlot = (onCard: boolean, s: number): [number, number] => onCard ? [960, [948, 1018, 1018][s] ?? 1018] : ([[960, 150], [960, 236], [960, 322]][s] ?? [960, 322]) as [number, number];

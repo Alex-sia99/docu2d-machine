@@ -63,6 +63,13 @@ export const SPECIES: Record<string, Quad> = {
     leg: { w: 0.3, foot: "column" }, tail: { len: 0.6, tuft: true },
     col: { body: "#9b968c", dark: "#7a766d", belly: "#aaa59b", accent: "#d9d2c3" }, horns: "rhino", gait: { stride: 1.3 },
   },
+  hyena: {
+    name: { fr: "hyène", en: "hyena" },
+    len: 1.0, top: 0.84, belly: 0.4, hump: 0.16, rumpDrop: 0.3,
+    head: { len: 0.42, h: 0.34, snout: "cat", neck: 0.2, lift: -0.02, ear: "round" },
+    leg: { w: 0.11, foot: "pad" }, tail: { len: 0.32, tuft: true },
+    col: { body: "#b89a6a", dark: "#8f7449", belly: "#cbb48a", accent: "#3b2f22" }, spots: "#5b4630", gait: { stride: 0.9 },
+  },
   crocodile: {
     name: { fr: "crocodile", en: "crocodile" },
     len: 1.9, top: 0.5, belly: 0.22, hump: 0, rumpDrop: 0,
@@ -74,7 +81,7 @@ export const SPECIES: Record<string, Quad> = {
 /** tailles réelles (m) pour les comparaisons d'échelle et le vérificateur */
 export const REAL: Record<string, { h: number; l: number; label?: string }> = {
   hippo: { h: 1.5, l: 4.0 }, lion: { h: 1.2, l: 2.5 }, elephant: { h: 3.2, l: 6.5 }, buffalo: { h: 1.6, l: 3.2 }, rhino: { h: 1.7, l: 3.8 }, crocodile: { h: 0.5, l: 4.5 },
-  human: { h: 1.75, l: 0.5 }, child: { h: 1.3, l: 0.4 }, car: { h: 1.5, l: 4.2 }, canoe: { h: 0.4, l: 5.0 },
+  hyena: { h: 0.85, l: 1.5 }, human: { h: 1.75, l: 0.5 }, child: { h: 1.3, l: 0.4 }, car: { h: 1.5, l: 4.2 }, canoe: { h: 0.4, l: 5.0 },
 };
 
 const rotP = ([x, y]: V, a: number): V => { const c = Math.cos(a), s = Math.sin(a); return [x * c - y * s, x * s + y * c]; };
@@ -165,7 +172,7 @@ export const QuadP: React.FC<{ q: Quad | string; x: number; y: number; ppm: numb
       <path d={body} fill={C.body} />
       <path d={`M${pt([-L / 2 + 0.1, -bel - 0.02], k)} Q${pt([0, -bel + 0.14], k)} ${pt([L / 2 - 0.1, -bel + 0.02], k)} Q${pt([0, -bel - 0.1], k)} ${pt([-L / 2 + 0.1, -bel - 0.02], k)} Z`} fill={C.belly} opacity={0.75} />
       {q.stripes && [0, 1, 2, 3, 4, 5].map((i) => <path key={i} d={`M${pt([-L / 2 + 0.3 + i * L / 7, -top + 0.02], k)} q${0.08 * k},${(top - bel) * 0.5 * k} 0,${(top - bel) * 0.9 * k}`} stroke={q.stripes} strokeWidth={0.06 * k} fill="none" />)}
-      {q.spots && Array.from({ length: 14 }, (_, i) => <circle key={i} cx={(-L / 2 + 0.25 + ((i * 0.37) % 1) * (L - 0.4)) * k} cy={(-top + 0.1 + ((i * 0.61) % 1) * (top - bel - 0.25)) * k} r={0.05 * k} fill={q.spots} />)}
+      {q.spots && Array.from({ length: 14 }, (_, i) => <circle key={i} cx={(-L / 2 + 0.2 + ((i * 0.618) % 1) * (L - 0.3)) * k} cy={(-top + 0.12 + ((i * 0.382 + i * i * 0.137) % 1) * (top - bel - 0.22)) * k} r={0.035 * k} fill={q.spots} />)}
       {(q.sweat || st.sweat) && <g><path d={body} fill="#c43a2c" opacity={0.13} />{Array.from({ length: 14 }, (_, i) => <g key={i}><ellipse cx={(-L / 2 + 0.25 + ((i * 0.43) % 1) * (L - 0.4)) * k} cy={(-top + 0.1 + ((i * 0.71) % 1) * (top - bel - 0.2)) * k} rx={0.018 * k} ry={0.06 * k} fill="#b8231a" opacity={0.75} /><circle cx={(-L / 2 + 0.25 + ((i * 0.43) % 1) * (L - 0.4) - 0.012) * k} cy={(-top + 0.1 + ((i * 0.71) % 1) * (top - bel - 0.2) - 0.025) * k} r={0.007 * k} fill="#ffd9c9" opacity={0.8} /></g>)}</g>}
       {feet.filter((f) => f.near).map(leg)}
       {/* cou + crinière */}

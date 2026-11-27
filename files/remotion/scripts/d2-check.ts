@@ -13,7 +13,7 @@ const all: { rule: string; msg: string }[] = [...issues];
 const seen = new Set<string>();
 for (let f = 0; f < P.tl.total * 30; f++) {
   const T = f / 30; const { cur } = worldAt(beats, T);
-  for (const i of checkScene(sceneAt(P.sb.meta.world, cur, T), T, P.sb.meta.world, P.sb.meta.hero)) { const k = i.rule + i.msg.replace(/t=[\d.]+ /, ""); if (!seen.has(k)) { seen.add(k); all.push(i); } }
+  for (const i of checkScene(sceneAt(P.sb.meta.world, cur, T, P.sb.meta.hero), T, P.sb.meta.world, P.sb.meta.hero)) { const k = i.rule + i.msg.replace(/t=[\d.]+ /, "").replace(/[\d.]+ (px|m)/g, ""); /* une anomalie répétée ne compte qu'une fois */ if (!seen.has(k)) { seen.add(k); all.push(i); } }
 }
 // assets présents
 for (const b of beats) if ((b.type === "broll" || b.type === "photo") && !P.assets?.[b.asset]) all.push({ rule: "asset", msg: `plan « ${b.asset} » absent des assets` });

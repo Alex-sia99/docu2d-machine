@@ -29,15 +29,15 @@ export const ground = (kind: string) => { const g = groundOf(kind === "ocean" ? 
 export const SPOTS: Record<string, { x: number; y: number; z: number }> = {
   plain: { x: -6, y: -1.6, z: 1.15 }, bank: { x: 12, y: -1.6, z: 1.1 }, river: { x: 33, y: 0.1, z: 1.15 }, herd: { x: 33, y: 0.25, z: 0.95 },
   under: { x: 53, y: 1.8, z: 0.8 }, far: { x: 88, y: -1.9, z: 1.0 }, wide: { x: 28, y: -1.5, z: 0.36 }, sky: { x: 10, y: -6, z: 0.7 },
-  canoe: { x: 33, y: -0.6, z: 1.3 }, night: { x: 7.5, y: -2.0, z: 0.74 }, calf: { x: 31, y: -0.4, z: 1.7 }, deep: { x: 52, y: 2.3, z: 1.25 },
+  canoe: { x: 33, y: -0.6, z: 1.3 }, canoeSolo: { x: 42.5, y: -0.4, z: 1.2 }, portrait: { x: -4.2, y: -2.1, z: 2.5 }, night: { x: 7.5, y: -2.0, z: 0.74 }, calf: { x: 31, y: -0.4, z: 1.7 }, deep: { x: 52, y: 2.3, z: 1.25 },
 };
 export type Cam = { x: number; y: number; z: number };
 const camOf = (b?: Resolved): Cam => {
   if (!b) return SPOTS.wide;
-  const s = SPOTS[b.spot] || SPOTS[PRESET_SPOT[b.preset as string]] || SPOTS.river;
+  const s = SPOTS[b.spot] || (b.preset === "canoe" && b.solo ? SPOTS.canoeSolo : null) || SPOTS[PRESET_SPOT[b.preset as string]] || SPOTS.river;
   return { x: b.cx ?? s.x, y: b.cy ?? s.y, z: b.zoom ?? s.z };
 };
-const PRESET_SPOT: Record<string, string> = { canoe: "canoe", night: "night", calf: "calf", nurse: "deep", under: "deep", sleep: "deep", gape: "calf", charge: "plain", graze: "plain", sweat: "bank", herd: "herd", pass: "herd" };
+const PRESET_SPOT: Record<string, string> = { canoe: "canoe", night: "night", calf: "calf", nurse: "deep", under: "deep", sleep: "deep", gape: "calf", charge: "plain", graze: "plain", sweat: "bank", herd: "herd", pass: "herd", cross: "plain", drink: "bank", portrait: "portrait", wide: "wide" };
 
 /** caméra lissée entre deux beats monde (1,1 s, ease in-out) */
 export const camAt = (cur: Resolved | undefined, prev: Resolved | undefined, T: number): Cam => {
@@ -55,12 +55,43 @@ export type Canoe = { x: number; y: number; tilt: number; dir: 1 | -1 };
 export type Scene = { hippos: Hippo[]; humans: Human[]; canoes: Canoe[]; paddles: { a: V; b: V }[]; splashes: { x: number; t: number }[]; dark: number; night: number; arrows: { a: V; b: V; col: string }[]; crosses: V[]; bubbles: V[] };
 
 const ev = (b: Resolved, name: string) => { const e = (b.events || []).find((x: any) => x.do === name); return e ? (e._t as number) : Infinity; };
-const herdBase = (T: number): Hippo[] => [
-  { id: "h1", x: 27.2 * PPM, y: 1.25 * PPM, st: { gape: 0 } },
-  { id: "h2", x: 30.6 * PPM, y: 1.25 * PPM, flip: true, st: {} },
-  { id: "h3", x: 35.4 * PPM, y: 1.25 * PPM, st: { gape: Math.max(0, Math.sin(T * 0.35 + 1) - 0.92) * 900 } },
-  { id: "h4", x: 38.6 * PPM, y: 1.25 * PPM, flip: true, s: 0.85, st: {} },
-];
+/** Espèces qui vivent DANS l'eau (R5) : les autres ne sont jamais posées dans la rivière. */
+export const AQUATIC = new Set(["hippo", "crocodile"]);
+export const GAPERS = new Set(["hippo", "crocodile", "lion"]);
+/** Encombrement horizontal (m) d'un animal centré en 0, tourné vers la droite : [arrière, avant]. */
+export const extentOf = (species: string, s = 1): [number, number] => { const q = SPECIES[species] || SPECIES.hippo; return [(q.len / 2 + 0.45) * s, (q.len / 2 + q.head.neck + q.head.len + 0.1) * s]; };
+/**
+ * Troupeau (R3/R4) : composition DIFFÉRENTE à chaque apparition (graine = beat), animaux placés bout à bout avec un
+ * écart — jamais l'un dans l'autre, jamais tête contre tête —, vie : respiration, plongées décalées, bâillement rare.
+ * Espèce terrestre : troupeau dans la plaine, têtes basses, qui avance lentement et ENSEMBLE (aucun tapis roulant).
+ */
+const herdOf = (T: number, seed: string, species: string, dt = 0): Hippo[] => {
+  const aquatic = AQUATIC.has(species);
+  const zone = aquatic ? [25.3, 41] : [-15, 4];
+  const n = 3 + Math.floor(random(seed + "n") * 2);
+  const out: Hippo[] = []; let x = zone[0] + random(seed + "x") * 1.2;
+  const landDir = random(seed + "d") < 0.5; // le troupeau terrestre avance dans une seule direction
+  for (let i = 0; i < n; i++) {
+    const s = random(seed + "s" + i) < 0.3 ? 0.78 : 1;
+    const flip = aquatic ? random(seed + "f" + i) < 0.35 : landDir;
+    const [back, front] = extentOf(species, s);
+    const cx = flip ? x + front : x + back;
+    const right = flip ? cx + back : cx + front;
+    if (right > zone[1]) break;
+    x = right + 0.5 + random(seed + "g" + i) * 1.4;
+    if (aquatic) {
+      // plongée lente toutes les 14-22 s (décalée par animal) : seuls les yeux et les oreilles restent dehors
+      const per = 14 + random(seed + "p" + i) * 8, ph = ((T + random(seed + "o" + i) * per) % per) / per;
+      const dive = ph > 0.7 ? Math.sin(((ph - 0.7) / 0.3) * Math.PI) : 0;
+      const yawn = GAPERS.has(species) && i === 1 && random(seed + "y") < 0.6 ? Math.max(0, Math.sin(T * 0.4 + i) - 0.93) * 1600 : 0;
+      out.push({ id: `h${i}`, x: cx * PPM, y: (1.25 - Math.max(0, Math.sin(T * 1.1 + i)) * 0.012 - dive * 0) * PPM, flip, s, st: { gape: Math.min(110, yawn) } });
+    } else {
+      const v = 0.35; const d = Math.min(Math.max(0, dt) * v, 6); // avance réelle depuis le début de la scène, bornée (reste dans la plaine)
+      out.push({ id: `h${i}`, x: (cx + (flip ? -d : d)) * PPM, y: -1 * PPM, flip, s, st: { moving: true, dist: d, headDown: 22 + Math.sin(T * 0.9 + i) * 8 }, onGround: true });
+    }
+  }
+  return out;
+};
 /** pose assise de pagayeur dans un canoë (profil), mains sur la pagaie */
 const paddler = (id: string, c: string, cx: number, wy: number, dir: 1 | -1, T: number, speed = 1): { h: Human; paddle: { a: V; b: V } } => {
   const s = rigScale(CAST[c], PPM);
@@ -75,12 +106,19 @@ const paddler = (id: string, c: string, cx: number, wy: number, dir: 1 | -1, T: 
   return { h: { id, c, kind: "side", x: hip[0], y: hip[1], dir, pose, seated: true }, paddle: { a: top, b: blade } };
 };
 
-export const sceneAt = (kind: string, cur: Resolved | undefined, T: number): Scene => {
+/** Preset effectif selon l'espèce (R5) : une scène aquatique devient sa version terrestre pour un animal terrestre. */
+export const presetFor = (p: string | undefined, species: string) => {
+  if (!p) return p;
+  if (AQUATIC.has(species)) return p;
+  return ({ under: "graze", sleep: "graze", nurse: "calf", sweat: "graze", gape: GAPERS.has(species) ? "gape" : "portrait" } as Record<string, string>)[p] || p;
+};
+export const sceneAt = (kind: string, cur: Resolved | undefined, T: number, species = "hippo"): Scene => {
   const S: Scene = { hippos: [], humans: [], canoes: [], paddles: [], splashes: [], dark: 0, night: cur?.night ?? 0, arrows: [], crosses: [], bubbles: [] };
   if (kind !== "savane") return S;
-  const b = cur; const p = b?.preset as string | undefined; const t0 = b?.t0 ?? 0, dt = T - t0;
-  const herd = b?.herd !== false && p !== "night" && p !== "graze" && p !== "charge" && p !== "canoe";
-  if (herd) S.hippos.push(...herdBase(T));
+  const b = cur; const p = presetFor(b?.preset as string | undefined, species); const t0 = b?.t0 ?? 0, dt = T - t0;
+  const aquatic = AQUATIC.has(species);
+  const herd = b?.herd !== false && (p === "herd" || p === "wide" || false);
+  if (herd) S.hippos.push(...herdOf(T, (b?.id || "w") + (b?.line || ""), species, dt));
   if (!b) return S;
   const hero = b.hero || {};
   if (p === "canoe" || p === "pass") {
@@ -90,7 +128,7 @@ export const sceneAt = (kind: string, cur: Resolved | undefined, T: number): Sce
     const tS = ev(b, "surface"), tF = ev(b, "flip"), tD = ev(b, "dark"), tP = ev(b, "rush");
     const v = 0.35 * PPM;
     const x2 = 33.6 * PPM + Math.min(dt, (tS - t0)) * v * 0.6; // canoë d'Evans (devant)
-    const x1 = 29.2 * PPM + dt * v * 0.6 + (T > tP ? (T - tP) * 0.5 * PPM : 0); // canoë de Paul
+    const x1 = (b.solo ? 38.5 : 29.2) * PPM + dt * v * 0.6 + (T > tP ? (T - tP) * 0.5 * PPM : 0); // canoë de Paul
     const rise = sm((T - tS) / 0.7) * (T > tF + 1.2 ? Math.max(0, 1 - (T - tF - 1.2) / 1.5) : 1);
     const flip = sm((T - tF) / 0.6);
     const tilt2 = flip * 172 + rise * 12; // chaviré = coque à l'envers qui flotte (jamais dressé à la verticale)
@@ -98,8 +136,9 @@ export const sceneAt = (kind: string, cur: Resolved | undefined, T: number): Sce
     if (!solo) S.canoes.push({ x: x2 + flip * 0.8 * PPM, y: -rise * 0.4 * PPM * (1 - flip) + flip * 0.1 * PPM, tilt: tilt2, dir: 1 });
     if (solo) { /* rien : pas de canoë d'Evans */ } else if (flip < 0.35) { const pd = paddler("evans", "evans", x2 - 0.6 * PPM, -rise * 0.55 * PPM, 1, T); pd.h.pose.torso += rise * 25; S.humans.push(pd.h); S.paddles.push(pd.paddle); }
     else S.humans.push({ id: "evans", c: "evans", kind: "front", x: x2 + 1.4 * PPM, y: 0, inWater: true, hipY: 0.7 * PPM });
-    if (T > tS) S.hippos.push({ id: "hero", x: solo ? x1 + 3.6 * PPM : x2 + 0.3 * PPM, y: (1.25 - rise * (solo ? 0.7 : 0.75)) * PPM, st: { gape: T > tF ? 40 : 0 } });
-    if (T > tS && T < tS + 1.2) S.splashes.push({ x: solo ? x1 + 3.6 * PPM : x2, t: T - tS });
+    const heroX = solo ? x1 + 6.6 * PPM : x2 + 0.3 * PPM; // à côté du canoë, jamais dessous
+    if (T > tS) S.hippos.push({ id: "hero", x: heroX, y: solo ? lerp(3.6, 1.12, sm((T - tS) / 1.6)) * PPM : (1.25 - rise * 0.75) * PPM, flip: solo, st: { gape: !solo && T > tF ? 40 : 0 } });
+    if (T > tS && T < tS + 1.4) S.splashes.push({ x: heroX, t: T - tS });
     if (T > tF && T < tF + 1.4) S.splashes.push({ x: x2 + 1.2 * PPM, t: T - tF });
     const pd1 = paddler("paul", "paul", x1, 0, 1, T, T > tP ? 1.8 : 1);
     S.humans.push(pd1.h); S.paddles.push(pd1.paddle); S.canoes.push({ x: x1 + 0.6 * PPM, y: 0, tilt: 0, dir: 1 });
@@ -120,19 +159,31 @@ export const sceneAt = (kind: string, cur: Resolved | undefined, T: number): Sce
       if (T > tM + 3.4) { S.arrows.push({ a: [hx + 2.6 * PPM, -2.9 * PPM], b: [19 * PPM, -2.9 * PPM], col: "#f2c14e" }); S.crosses.push([10 * PPM, -3.7 * PPM]); }
     }
   } else if (p === "graze") {
-    S.hippos.push({ id: "hero", x: (-6 + dt * 0.08) * PPM, y: -1 * PPM, st: { headDown: 30 + Math.sin(T * 1.3) * 5, moving: true, dist: dt * 0.08, sweat: !!hero.sweat }, onGround: true });
+    S.hippos.push({ id: "hero", x: -6 * PPM, y: -1 * PPM, flip: random((b.id || "") + "gf") < 0.5, st: { headDown: 34 + Math.max(0, Math.sin(T * 2.2)) * 10, sweat: !!hero.sweat }, onGround: true });
   } else if (p === "charge") {
     const tC = Number.isFinite(ev(b, "go")) ? ev(b, "go") : t0 + 0.6;
-    const run = T > tC; const d = run ? Math.min(14, (T - tC) * 8.3) : 0; // 30 km/h ≈ 8,3 m/s
-    S.hippos.push({ id: "hero", x: (-12 + d) * PPM, y: -1 * PPM, st: { moving: run, run: true, dist: d, headDown: run ? 12 : 0 }, onGround: true });
+    const u = T > tC ? Math.min(1, (T - tC) / 2.6) : 0; const d = 15 * (1 - (1 - u) * (1 - u)); // élan puis freinage (~30 km/h au départ)
+    S.hippos.push({ id: "hero", x: (-14 + d) * PPM, y: -1 * PPM, st: { moving: u > 0 && u < 1, run: true, dist: d, headDown: u > 0 && u < 1 ? 12 : 0 }, onGround: true });
+    if (u > 0 && u < 1) S.splashes.length = 0;
   } else if (p === "sweat") {
     S.hippos.push({ id: "hero", x: 11 * PPM, y: -1 * PPM, st: { sweat: T > ev(b, "sweat") || !b.events, gape: 0 }, onGround: true });
   } else if (p === "gape") {
     S.hippos = S.hippos.filter((h) => h.id !== "h2");
     const g = T > (Number.isFinite(ev(b, "open")) ? ev(b, "open") : t0 + 0.5) ? 150 * sm((T - (Number.isFinite(ev(b, "open")) ? ev(b, "open") : t0 + 0.5)) / 0.9) : 0;
     S.hippos.push({ id: "hero", x: 31 * PPM, y: 1.25 * PPM - 0.45 * PPM, st: { gape: g } });
+  } else if (p === "calf" && !aquatic) {
+    S.hippos.push({ id: "mother", x: -7 * PPM, y: -1 * PPM, st: { headDown: 20 }, onGround: true });
+    S.hippos.push({ id: "calf", x: -3.6 * PPM, y: -1 * PPM, s: 0.42, st: { headDown: 8 }, onGround: true });
+  } else if (p === "cross") {
+    // l'animal TRAVERSE un cadre fixe (marche réelle, 1,2 m/s) : on voit le décor rester en place
+    const d = Math.min(15, Math.max(0, dt - 0.3) * 1.2);
+    S.hippos.push({ id: "hero", x: (-14 + d) * PPM, y: -1 * PPM, st: { moving: d > 0 && d < 15, dist: d }, onGround: true });
+  } else if (p === "drink") {
+    const q = SPECIES[species] || SPECIES.hippo;
+    S.hippos.push({ id: "hero", x: (16.6 - q.len / 2 - q.head.neck - q.head.len * 0.8) * PPM, y: -1 * PPM, st: { headDown: 42 + Math.sin(T * 1.6) * 4 }, onGround: true });
+  } else if (p === "portrait") {
+    S.hippos.push({ id: "hero", x: -6 * PPM, y: -1 * PPM, st: { headDown: Math.sin(T * 0.5) * 4 }, onGround: true });
   } else if (p === "calf") {
-    S.hippos = S.hippos.filter((h) => h.id !== "h2" && h.id !== "h3");
     S.hippos.push({ id: "mother", x: 31.5 * PPM, y: 1.25 * PPM, st: {} });
     S.hippos.push({ id: "calf", x: 31.2 * PPM, y: (1.25 - 1.4) * PPM, s: 0.32, st: {} }); // le petit se repose sur le dos de sa mère
   } else if (p === "nurse") {
@@ -167,6 +218,10 @@ export const checkScene = (S: Scene, T: number, kind = "savane", species = "hipp
     }
     if (h.y > G(h.x) + 3) out.push({ rule: "sol", msg: `t=${T.toFixed(2)} ${h.id} sous le sol` });
   }
+  // R4 : deux animaux ne se chevauchent jamais (sauf le petit sur le dos / sous le ventre de sa mère)
+  const box = (h: Hippo) => { const [bk, fr] = extentOf(species, h.s ?? 1); return h.flip ? [h.x - fr * PPM, h.x + bk * PPM] : [h.x - bk * PPM, h.x + fr * PPM]; };
+  const an = S.hippos.filter((h) => h.id !== "calf");
+  for (let i = 0; i < an.length; i++) for (let j = i + 1; j < an.length; j++) { const a = box(an[i]), c = box(an[j]); const ov = Math.min(a[1], c[1]) - Math.max(a[0], c[0]); if (ov > 6 && Math.abs(an[i].y - an[j].y) < 1.2 * PPM) out.push({ rule: "chevauchement", msg: `t=${T.toFixed(2)} ${an[i].id} et ${an[j].id} se chevauchent (${(ov / PPM).toFixed(1)} m)` }); }
   for (const p of S.humans) {
     if (p.seated || p.inWater) continue;
     if (p.kind === "side" && p.feet) for (const f of p.feet) { const d = f.p[1] - G(f.p[0]); if (f.stance && Math.abs(d) > 4) out.push({ rule: "appui", msg: `t=${T.toFixed(2)} ${p.id} : pied d'appui ${d < 0 ? "flotte" : "s'enfonce"} (${d.toFixed(1)} px)` }); }

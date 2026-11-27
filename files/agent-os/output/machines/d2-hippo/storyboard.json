@@ -140,7 +140,7 @@
   {
    "type": "tag",
    "line": "l07",
-   "at": "brouter",
+   "at": "passe",
    "text": "100 % herbivore",
    "kind": "green"
   },
@@ -182,8 +182,7 @@
   {
    "type": "world",
    "line": "l11",
-   "preset": "herd",
-   "spot": "herd"
+   "preset": "wide"
   },
   {
    "type": "bignum",
@@ -204,7 +203,7 @@
   {
    "type": "bignum",
    "line": "l12",
-   "at": "fourchette",
+   "at": "estimation",
    "n": "500 à 3 000",
    "unit": "",
    "sub": "une simple estimation d'encyclopédie"
@@ -346,8 +345,7 @@
   {
    "type": "world",
    "line": "l17",
-   "preset": "herd",
-   "spot": "river"
+   "preset": "drink"
   },
   {
    "type": "broll",
@@ -525,17 +523,22 @@
    "title": "Presque aucun ennemi naturel",
    "items": [
     {
-     "icon": "lion",
-     "label": "lions",
+     "icon": "animal:lion",
+     "label": "les lions",
      "at": "lions"
     },
     {
-     "icon": "crocodile",
-     "label": "crocodiles",
+     "icon": "animal:hyena",
+     "label": "les hyènes",
+     "at": "hyènes"
+    },
+    {
+     "icon": "animal:crocodile",
+     "label": "les crocodiles",
      "at": "crocodiles"
     },
     {
-     "icon": "baby",
+     "icon": "animal:hippo:petit",
      "label": "surtout les petits",
      "at": "petits"
     }
@@ -544,8 +547,7 @@
   {
    "type": "world",
    "line": "l25",
-   "preset": "herd",
-   "spot": "river"
+   "preset": "wide"
   },
   {
    "type": "cta",
@@ -633,7 +635,9 @@
    "n": "≈ 40",
    "unit": " kg",
    "sub": "d'herbe en une nuit",
-   "icon": "grass"
+   "icon": "grass",
+   "untilLine": "l31",
+   "until": "Avant"
   },
   {
    "type": "world",
@@ -690,7 +694,7 @@
   {
    "type": "broll",
    "line": "l32",
-   "at": "menace",
+   "at": "bâillement",
    "asset": "gueule"
   },
   {
@@ -838,7 +842,8 @@
      "label": "freine des bactéries",
      "at": "bactéries"
     }
-   ]
+   ],
+   "untilLine": "l40"
   },
   {
    "type": "tag",
@@ -889,7 +894,7 @@
   {
    "type": "tag",
    "line": "l41",
-   "at": "cinquante-cinq",
+   "at": "ancêtre",
    "text": "ancêtre commun : 55 millions d'années"
   },
   {
@@ -901,8 +906,7 @@
   {
    "type": "world",
    "line": "l42",
-   "preset": "herd",
-   "spot": "river"
+   "preset": "cross"
   },
   {
    "type": "map",
@@ -930,7 +934,8 @@
    "type": "tag",
    "line": "l43",
    "at": "mâle",
-   "text": "1 mâle + 3 femelles"
+   "text": "1 mâle + 3 femelles",
+   "untilLine": "l43b"
   },
   {
    "type": "tag",
@@ -983,7 +988,7 @@
   {
    "type": "tag",
    "line": "l46b",
-   "at": "dehors",
+   "at": "groupe",
    "text": "le plus grand groupe hors d'Afrique"
   },
   {
@@ -998,8 +1003,13 @@
      "at": "rivières"
     },
     {
+     "icon": "manatee",
+     "label": "les lamantins",
+     "at": "lamantins"
+    },
+    {
      "icon": "canoe",
-     "label": "pêcheurs inquiets",
+     "label": "les pêcheurs",
      "at": "pêcheurs"
     },
     {
@@ -1042,8 +1052,7 @@
   {
    "type": "world",
    "line": "l49b",
-   "preset": "herd",
-   "spot": "bank"
+   "preset": "drink"
   },
   {
    "type": "tag",
@@ -1109,7 +1118,7 @@
    "text": "deux ans plus tard"
   },
   {
-   "type": "outro",
+   "type": "end",
    "line": "l52",
    "at": "Et",
    "text": "Et vous, vous remonteriez dans le canoë ?"

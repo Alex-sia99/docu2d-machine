@@ -67,7 +67,7 @@ const DEFAULTS = {
   pace: {}, // mots / min de PAROLE mesurés (hors pauses) — mis à jour à chaque run
 };
 const PRICES = { elevenPer1kChars: 0.15, music: 0.06, llm: 0.08, aiImage: 0.02, aiVideo: 0.3 };
-const SPECIES_OK = ["hippo", "lion", "elephant", "buffalo", "rhino", "crocodile"];
+const SPECIES_OK = ["hippo", "lion", "elephant", "buffalo", "rhino", "crocodile", "hyena"];
 
 // ---------------------------------------------------------------- persistance
 function getRun(id) { return readJSON(`machines/runs/${MACHINE_ID}/${id}.json`, null); }
@@ -229,21 +229,22 @@ async function stepVoice(run) {
 }
 
 // ---------------------------------------------------------------- 4. storyboard (+ vérificateur)
-const BEAT_DOC = `TYPES DE BEATS (ancrés sur un MOT de la réplique : "line" + "at" ; optionnel "until"/"untilLine") :
-CARTES (une seule à la fois, elle coupe la précédente ; ≥ 1,6 s) :
-- title {text, sub} · toc {items:[{at}×5]} (sommaire, une carte par question) · chapter {n} (« Question n »)
-- bignum {n, unit, sub, icon} · compare {items:[{who: human|child|car|<espèce>, label, value, at}]} (tailles réelles)
-- bars {title, log:true|false, items:[{label, icon, value, display, at, line?, hi?}]} · map {focus:"ISO3" ou [lon,lat], zoom0, zoom, highlight:["ISO3"], pins:[{lonlat:[lon,lat], label, at}]}
-- anatomy {species, gape (°, 0 si fermé), gapeAt, labels:[{part: canine|incisor|eye|ear|nostril|lips|skin|leg|belly, text, at, side: left|right|bottom}]}
-- timeline {items:[{year, text, at, line?}]} · quote {text} · icons {title, items:[{icon, label, at, no?, ok?}]} · outro {text}
-- broll {asset:"nom_court", query:"3 à 5 mots ANGLAIS décrivant un plan réel filmable de l'espèce"} (plan réel libre, 4-8 s)
-ÉTIQUETTES : tag {text (≤ 34 car.), sub?, kind: white|orange|yellow|green} — sur la carte visible ou sur le monde ; ≥ 1,3 s visibles.
-MONDE (le plan-séquence dessiné, change avec le beat suivant) : world {preset, spot?, night?, events?:[{do, at, line?}]}
-  presets : herd (troupeau dans l'eau) · graze (broute, night 0.5 = crépuscule) · charge (events go) · gape (events open) · calf (mère + petit)
-  · night (events return, man, gape : un humain entre l'animal et l'eau) · under (marche au fond, events breathe) · sleep · nurse · sweat (events sweat)
-  · canoe (events surface, flip, rush, dark ; solo:true = un seul canoë) · spots : plain, bank, river, herd, calf, deep, night, wide
+const BEAT_DOC = (hero, aquatic) => `TYPES DE BEATS (ancrés sur un MOT de la réplique : "line" + "at" ; optionnel "until"/"untilLine") :
+CARTES (une seule à la fois, elle coupe la précédente ; elle doit rester LISIBLE : ≥ 2,5 s et ≥ 1,2 s + 0,05 s par caractère affiché — en pratique UNE carte par réplique au plus, ancrée tôt dans la réplique) :
+- title {text, sub} · toc {items:[{at}×5]} (sommaire) · chapter {n} (« Question n ») · end {text} (DERNIÈRE réplique : question en commentaire + J'aime/S'abonner)
+- bignum {n, unit, sub, icon} (≤ 20 % des cartes, jamais 3 cartes du même type à la suite) · compare {items:[{who: human|child|car|<espèce>, label, value, at}]} (tailles réelles)
+- bars {title, log:true|false, items:[{label, icon, value, display, at, line?, hi?}]} · map {focus:"ISO3" ou [lon,lat], zoom0, zoom, highlight:["ISO3"], names?:["ISO3" SEULEMENT si le pays est cité], pins:[{lonlat:[lon,lat], label, at}]}
+- anatomy {species, gape (°), gapeAt, labels:[{part: canine|incisor|eye|ear|nostril|lips|skin|leg|belly, text, at, side: left|right|bottom}]}
+- timeline {items:[{year, text, at, line?}] — au moins 3 dates} · quote {text} · icons {title, items:[{icon, label, at, no?, ok?}]}
+- broll {asset:"nom_court", query:"3 à 5 mots ANGLAIS décrivant un plan réel filmable de l'espèce"} (plan réel libre, vérifié par la vision)
+ÉTIQUETTES : tag {text (≤ 34 car.), sub?, kind: white|orange|yellow|green} ; ≥ 1,8 s visibles ; elles NOMMENT ce qu'on voit, jamais au hasard.
+MONDE (plan-séquence dessiné) : world {preset, spot?, night?, events?:[{do, at, line?}]} — JAMAIS deux fois le même preset à la suite, aucun preset > 35 % du temps du monde :
+  presets pour toute espèce : wide (vue d'ensemble) · herd (troupeau ${aquatic ? "dans l'eau" : "dans la plaine"}) · cross (l'animal traverse le cadre) · drink (boit au bord de l'eau) · portrait (gros plan de la tête) · graze (broute ; night 0.5 = crépuscule) · charge (events go) · calf (mère + petit) · night (events return, man, gape : un humain entre l'animal et l'eau)
+  ${aquatic ? "presets aquatiques (" + hero + ") : gape (gueule ouverte, events open) · under (marche au fond, events breathe) · sleep · nurse (petit qui tète sous l'eau) · canoe (events surface, flip, rush, dark ; solo:true = un seul canoë)" : "AUCUNE scène aquatique pour cette espèce (jamais dans la rivière)."}${hero === "hippo" ? " · sweat (sueur rouge, events sweat)" : ""}
 CTA : cta {like:"mot", sub:"mot"} (une fois, au milieu).
-ICÔNES : skull tooth tusk shield eye globe sun moon whale weight speed canoe baby warning grass bacteria ruler hippo lion crocodile pig elephant money colombia thermometer heart brain water hospital phone syringe lungs bandage mosquito fin question check cross calendar stopwatch.`;
+ICÔNES — une icône doit REPRÉSENTER le mot (sinon pas d'icône) : skull=mort/victimes · tooth=dent/morsure · tusk=défense · shield=défense/protection · eye=vue/secret · globe=monde/pays/villages · sun=soleil/UV · moon=nuit · whale=baleine/cétacé · weight=poids · speed=vitesse · canoe=bateau/pêcheur · warning=danger · grass=herbe/brouter · bacteria=bactérie · ruler=distance/longueur · water=eau/rivière · hospital=médical · phone=déclaré/signalé · syringe=stérilisation/vaccin · lungs=respiration · bandage=blessure · mosquito · fin=requin · snake · pig · elephant · manatee=lamantin · money=argent/coût · calendar=date · stopwatch=durée · heart=cœur · brain=intelligence · dna=ADN/ancêtre/cousin · person=humain/habitant · baby=bébé HUMAIN uniquement.
+ANIMAUX : tout animal du bestiaire s'illustre par icon "animal:<espèce>" (hippo, lion, elephant, buffalo, rhino, crocodile, hyena) ou "animal:<espèce>:petit" pour un petit. Un animal absent du bestiaire et des icônes = PAS d'icône (texte seul), jamais une icône voisine.
+DIT = MONTRÉ : ce qui est montré à un instant correspond à ce que dit la voix à cet instant ; un animal, un lieu, un objet cité et illustré l'est correctement ; une carte du monde ne nomme que les pays cités.`;
 async function d2check(run) {
   const props = path.join(PUB_DIR, run.id, "props.json");
   try { const out = await npx(["tsx", "scripts/d2-check.ts", `"${props}"`, "--json"]); return JSON.parse(out.trim().split("\n").pop()); }
@@ -258,6 +259,27 @@ function stageRun(run) {
   r.props.root = ""; fs.writeFileSync(path.join(PUB_DIR, run.id, "props.json"), JSON.stringify(r.props));
   return r;
 }
+/** Réparation automatique des anomalies que le LLM n'a pas corrigées (ou que la passe critique a introduites). */
+const PRESET_NEAR = { attack: "charge", charging: "charge", run: "charge", tracking: "cross", walk: "cross", walking: "cross", close: "portrait", closeup: "portrait", low: "portrait", head: "portrait", water: "drink", river: "herd", group: "herd", sleep: "graze", rest: "graze", eat: "graze", eating: "graze", baby: "calf", young: "calf" };
+function autoFix(sb, tl, issues) {
+  let n = 0; const ids = tl.lines.map((l) => l.id);
+  const next = (id) => ids[Math.min(ids.length - 1, ids.indexOf(id) + 1)];
+  for (const i of issues) {
+    let m;
+    if (i.rule === "preset" && (m = /« (.+?) » \((l[\w]+)\)/.exec(i.msg))) {
+      for (const b of sb.beats) if ((b.type === "world" || b.type === "scene") && b.preset === m[1] && b.line === m[2]) { b.preset = PRESET_NEAR[m[1]] || "wide"; delete b.spot; n++; }
+    } else if (i.rule === "lecture" && (m = /^carte (\w+) \((l[\w]+)\)/.exec(i.msg))) {
+      const b = sb.beats.find((x) => x.type === m[1] && x.line === m[2]);
+      if (b && !b.untilLine) { b.untilLine = next(b.line); delete b.until; n++; } else if (b) { sb.beats.splice(sb.beats.indexOf(b), 1); n++; }
+    } else if (i.rule === "lecture" && (m = /^étiquette « (.+?) »/.exec(i.msg))) {
+      const k = sb.beats.findIndex((x) => x.type === "tag" && x.text === m[1]); if (k >= 0) { sb.beats.splice(k, 1); n++; }
+    } else if (i.rule === "icône" && (m = /icône « (.+?) »/.exec(i.msg))) {
+      for (const b of sb.beats) { if (b.icon === m[1]) { delete b.icon; n++; } for (const it of b.items || []) if (it.icon === m[1]) { delete it.icon; n++; } }
+    } else if (i.rule === "ancrage" && (m = /beat (\d+)/.exec(i.msg))) { sb.beats[Number(m[1])] = null; n++; }
+  }
+  sb.beats = sb.beats.filter(Boolean);
+  return n;
+}
 async function stepStoryboard(run) {
   const dir = runDir(run);
   const tl = jsonOf(path.join(dir, "timeline.json")); const script = jsonOf(path.join(dir, "script.json"));
@@ -268,14 +290,14 @@ async function stepStoryboard(run) {
   for (let a = 1; a <= 4; a++) {
     const prompt = a === 1 || !sb ? [
       `Écris le STORYBOARD JSON d'une vidéo papier découpé (${Math.round(tl.total)} s) : chaque réplique reçoit 1 à 3 beats qui ILLUSTRENT exactement ce qui est dit, au mot près.`,
-      BEAT_DOC,
-      `RÈGLES : premier beat = world (preset adapté à l'accroche) ; un chapter au début de chaque « Question numéro N » ; toc sur la réplique du sommaire ; title sur la question-titre ; un cta sur la réplique cta ; outro sur la dernière réplique ; EXACTEMENT ${nBroll} beats broll (part de plans réels visée : ${run.params.realPct} %) répartis sur toute la vidéo, sur des répliques qui décrivent un comportement filmable ; alterner cartes et monde (≈ 50 % du temps en cartes) ; un beat world au moins tous les 3 chapitres ; chiffres du script = chiffres des cartes ; "at" = un mot EXACT de la réplique.`,
+      BEAT_DOC(run.meta.hero, ["hippo", "crocodile"].includes(run.meta.hero)),
+      `RÈGLES : premier beat = world (preset adapté à l'accroche) ; un chapter au début de chaque « Question numéro N » ; toc sur la réplique du sommaire ; title sur la question-titre ; un cta sur la réplique cta ; end sur la dernière réplique ; au plus UNE carte par réplique ; environ un beat toutes les 6 s (mesure de la niche) ; EXACTEMENT ${nBroll} beats broll (part de plans réels visée : ${run.params.realPct} %) répartis sur toute la vidéo, sur des répliques qui décrivent un comportement filmable ; alterner cartes et monde (≈ 45 % du temps en cartes) ; un beat world différent du précédent à chaque retour au monde ; chiffres du script = chiffres des cartes ; "at" = un mot EXACT de la réplique.`,
       `Espèce dessinée : ${run.meta.hero}. Monde : savane (plaine, berge, rivière avec troupeau).`,
       gold ? `EXEMPLE (vidéo de référence, extrait) : ${JSON.stringify({ chapters: gold.chapters, beats: gold.beats.slice(0, 40) })}` : "",
       `RÉPLIQUES :\n${lines}`,
       `JSON UNIQUEMENT : {"meta":{"title":"${(script.title || "").replace(/"/g, "'")}","lang":"${run.params.lang}","world":"savane","hero":"${run.meta.hero}","family":"${run.meta.family}"},"chapters":${JSON.stringify(script.chapters)},"beats":[…]}`,
     ].filter(Boolean).join("\n\n") : [
-      "Corrige ce storyboard : le vérificateur a trouvé ces anomalies. Corrige UNIQUEMENT ce qui est signalé (mot d'ancrage exact de la réplique, étiquette trop longue → raccourcir, durée trop courte → ancrer plus tôt ou retirer, encombrement → retirer une étiquette).",
+      "Corrige ce storyboard : le vérificateur a trouvé ces anomalies. Corrige UNIQUEMENT ce qui est signalé (mot d'ancrage exact ; étiquette trop longue → raccourcir ; lecture trop courte → ancrer la carte plus tôt, la prolonger avec untilLine, ou la retirer ; icône qui ne représente pas le mot → icône juste, animal:<espèce>, ou aucune icône ; variété → changer le preset du monde ou le type de carte ; encombrement → retirer une étiquette).",
       `ANOMALIES :\n${issues.map((i) => `- [${i.rule}] ${i.msg}`).join("\n")}`,
       `RÉPLIQUES :\n${lines}`,
       `STORYBOARD ACTUEL :\n${JSON.stringify(sb)}`,
@@ -292,11 +314,35 @@ async function stepStoryboard(run) {
     fs.writeFileSync(path.join(PUB_DIR, run.id, "props.json"), JSON.stringify({ sb, tl, assets: fake, root: "" }));
     const chk = await d2check(run);
     issues = (chk.anomalies || []).filter((i) => i.rule !== "asset");
+    run.storyWarnings = issues.filter((i) => i.rule === "variété").map((i) => i.msg);
     log(run, `🧩 Storyboard essai ${a} : ${sb.beats.length} beats · ${issues.length} anomalie(s)${issues.length ? " → correction" : ""}`);
     if (!issues.length) break;
   }
   addCost(run, "llm", 0.06, "openrouter", "storyboard");
   if (!sb) throw new Error("storyboard illisible");
+  // PASSE CRITIQUE (R9) : chaque beat confronté à SA réplique — ce qui est montré correspond-il à ce qui est dit ?
+  try {
+    const byLine = Object.fromEntries(tl.lines.map((l) => [l.id, l.text]));
+    const rv = await askJson([
+      "Tu es le directeur artistique d'un documentaire animalier. Pour chaque beat visuel ci-dessous, vérifie qu'il montre EXACTEMENT ce que dit sa réplique : bonne espèce, bon objet, icône qui représente vraiment le mot (pas un bébé humain pour un petit animal, pas un bouclier pour un nombre), aucune carte qui nomme un pays non cité, aucun animal cité dans une liste sans son illustration juste, aucune scène du monde en contradiction (animal terrestre dans l'eau, scène de nuit sur une phrase de jour…).",
+      "Corrige les beats fautifs (même structure, mêmes ancrages) ou mets null pour retirer un beat qui ne peut pas être juste. N'invente rien que la réplique ne dit pas.",
+      "ESPÈCE DESSINÉE : " + run.meta.hero + " ; icônes animales possibles : animal:hippo, animal:lion, animal:elephant, animal:buffalo, animal:rhino, animal:crocodile, animal:hyena (+ \":petit\").",
+      "BEATS : " + JSON.stringify(sb.beats.map((b, i) => ({ i, ...b, replique: byLine[b.line] })).filter((b) => b.type !== "chapter" && b.type !== "toc")),
+      'JSON UNIQUEMENT : {"fixes":[{"i":12,"beat":{...} ou null,"why":""}]}',
+    ].join("\n"), "Critique du storyboard");
+    let n = 0;
+    for (const fx of Array.isArray(rv.fixes) ? rv.fixes : []) { if (!(fx.i >= 0 && fx.i < sb.beats.length)) continue; if (fx.beat === null) sb.beats[fx.i] = null; else if (fx.beat && fx.beat.type) { delete fx.beat.replique; delete fx.beat.i; sb.beats[fx.i] = fx.beat; } n++; }
+    sb.beats = sb.beats.filter(Boolean);
+    if (n) { fs.writeFileSync(path.join(dir, "storyboard.json"), JSON.stringify(sb, null, 1)); fs.writeFileSync(path.join(PUB_DIR, run.id, "props.json"), JSON.stringify({ sb, tl, assets: Object.fromEntries(sb.beats.filter((b) => b.type === "broll").map((b) => [b.asset, { file: "", kind: "video", credit: "" }])), root: "" })); const c2 = await d2check(run); issues = (c2.anomalies || []).filter((i) => i.rule !== "asset"); }
+    log(run, `🎬 Critique du storyboard : ${n} beat(s) corrigé(s) ou retiré(s) pour que l'image dise ce que dit la voix`);
+  } catch (e) { log(run, "critique : " + e.message.slice(0, 120)); }
+  for (let k = 0; k < 3 && issues.filter((i) => i.rule !== "variété").length; k++) {
+    const nfix = autoFix(sb, tl, issues); if (!nfix) break;
+    fs.writeFileSync(path.join(dir, "storyboard.json"), JSON.stringify(sb, null, 1));
+    fs.writeFileSync(path.join(PUB_DIR, run.id, "props.json"), JSON.stringify({ sb, tl, assets: Object.fromEntries(sb.beats.filter((b) => b.type === "broll").map((b) => [b.asset, { file: "", kind: "video", credit: "" }])), root: "" }));
+    const c3 = await d2check(run); issues = (c3.anomalies || []).filter((i) => i.rule !== "asset");
+    log(run, `🔧 Réparation automatique : ${nfix} correction(s) → ${issues.length} anomalie(s)`);
+  }
   // anomalies résiduelles : on retire les beats fautifs plutôt que de livrer un placement faux
   if (issues.length) {
     const bad = new Set(issues.map((i) => (/beat (\d+)/.exec(i.msg) || [])[1]).filter(Boolean).map(Number));
@@ -418,6 +464,9 @@ async function stepBroll(run) {
   }
   run.check = { anomalies: chk.anomalies || [], realPct: chk.realPct, cardPct: chk.cardPct, target: run.params.realPct };
   log(run, `✅ Plans réels : ${ok}${ai ? ` + ${ai} illustration(s) IA` : ""}${dropped ? ` · ${dropped} sans plan` : ""} · part réelle mesurée ${chk.realPct} % (cible ${run.params.realPct} %) · ${run.check.anomalies.length} anomalie(s)`);
+  if (run.check.anomalies.some((i) => i.rule !== "variété")) { const tl4 = jsonOf(path.join(dir, "timeline.json")); const nfix = autoFix(sb, tl4, run.check.anomalies); if (nfix) { fs.writeFileSync(path.join(dir, "storyboard.json"), JSON.stringify(sb, null, 1)); stageRun(run); const c4 = await d2check(run); run.check = { anomalies: c4.anomalies || [], realPct: c4.realPct, cardPct: c4.cardPct, target: run.params.realPct }; log(run, `🔧 Réparation automatique : ${nfix} correction(s) → ${run.check.anomalies.length} anomalie(s)`); } }
+  run.check.warnings = run.check.anomalies.filter((i) => i.rule === "variété"); run.check.anomalies = run.check.anomalies.filter((i) => i.rule !== "variété");
+  if (run.check.warnings.length) log(run, `⚠ variété : ${run.check.warnings.map((i) => i.msg).join(" · ")}`);
   if (run.check.anomalies.length) throw new Error(`vérificateur : ${run.check.anomalies.length} anomalie(s) — ${run.check.anomalies.slice(0, 3).map((i) => i.msg).join(" · ")}`);
   // planche de relecture (24 images) pour la validation semi-manuelle
   try { await npx(["remotion", "bundle", "src/docu2d.tsx", "--public-dir", `"${path.join(PUB_DIR, run.id)}"`, "--out-dir", `"build-d2-${run.id}"`, "--log=error"]); run.bundle = `build-d2-${run.id}`;
@@ -644,6 +693,37 @@ function start(runId, from) {
   return summary(getRun(runId));
 }
 
+
+// ---------------------------------------------------------------- bestiaire (onglet de la machine)
+/** Espèces dessinables (gabarit quadrupède, remotion/src/Docu2D/bestiary.tsx) : taille réelle et capacités. */
+const BESTIARY = [
+  { id: "hippo", fr: "Hippopotame", h: 1.5, l: 4.0, aquatic: true, gape: true, note: "scènes aquatiques complètes (troupeau, plongée, canoë, sueur rouge)" },
+  { id: "crocodile", fr: "Crocodile", h: 0.5, l: 4.5, aquatic: true, gape: true, note: "aquatique, gueule" },
+  { id: "lion", fr: "Lion", h: 1.2, l: 2.5, aquatic: false, gape: true, note: "terrestre, crinière, gueule" },
+  { id: "elephant", fr: "Éléphant", h: 3.2, l: 6.5, aquatic: false, gape: false, note: "terrestre, trompe, défenses" },
+  { id: "buffalo", fr: "Buffle d'Afrique", h: 1.6, l: 3.2, aquatic: false, gape: false, note: "terrestre, cornes" },
+  { id: "rhino", fr: "Rhinocéros", h: 1.7, l: 3.8, aquatic: false, gape: false, note: "terrestre, deux cornes" },
+  { id: "hyena", fr: "Hyène", h: 0.85, l: 1.5, aquatic: false, gape: false, note: "terrestre, dos tombant, taches (icônes et comparaisons)" },
+];
+const BEST_DIR = path.join(OUT_ROOT, "docu2d-bestiaire");
+function bestiary() {
+  return BESTIARY.map((b) => {
+    const f = path.join(BEST_DIR, b.id + ".png"); const ok = fs.existsSync(f);
+    return { ...b, sheet: ok ? `agent-os/output/machines/docu2d-bestiaire/${b.id}.png` : null, ts: ok ? fs.statSync(f).mtimeMs : 0 };
+  });
+}
+/** (Re)dessine la planche de chaque espèce (BestiarySheet : grand format fermé / gueule / marche + alignement à l'échelle). */
+async function renderBestiary() {
+  ensureDir(BEST_DIR); const base = path.join(REMOTION_DIR, "public-d2-base"); ensureDir(base);
+  try { fs.copyFileSync(path.join(PUB_DIR, "paper.png"), path.join(base, "paper.png")); } catch {}
+  await npx(["remotion", "bundle", "src/docu2d.tsx", "--public-dir", "public-d2-base", "--out-dir", "build-d2-bestiaire", "--log=error"]);
+  for (const b of BESTIARY) {
+    const pf = path.join(BEST_DIR, b.id + ".props.json"); fs.writeFileSync(pf, JSON.stringify({ id: b.id }));
+    await npx(["remotion", "still", "build-d2-bestiaire", "BestiarySheet", `"${path.join(BEST_DIR, b.id + ".png")}"`, `--props="${pf}"`, "--frame=20", "--scale=0.5"]);
+  }
+  return bestiary();
+}
+
 // ---------------------------------------------------------------- idées, estimation
 function producedSubjects() { return [...listRuns().map((r) => r.params.subject), "hippopotame", "méduse-boîte"]; }
 async function suggestTopics(n = 6, family = "auto") {
@@ -675,5 +755,5 @@ async function orderRun({ publishChannelId, publishPrivacy, publish, overrides, 
 module.exports = {
   MACHINE_ID, MACHINE_NAME, DEFAULTS, LANGS, ELEVEN_VOICES, SPECIES_OK, config, patchConfig, listRuns, getRun, saveRun, createRun, advance, resetFrom, sweepRuns, strandedRuns,
   suggestTopics, suggestThemes, orderRun, estimate, summary, start, resumeRun, validate, cancelRun, isLive: (id) => live.has(id), stockKeys, voices, descriptionBlocks,
-  stock, patchStock, publishRun, saveTexts,
+  stock, patchStock, publishRun, saveTexts, bestiary, renderBestiary,
 };

@@ -24,9 +24,9 @@ export const Docu2D: React.FC<DocuProps> = ({ sb, tl, assets = {}, root = "" }) 
   const beats = R.beats;
   const { cur, prev } = worldAt(beats, T);
   const cam = camAt(cur, prev, T);
-  const S = sceneAt(sb.meta.world, cur, T);
+  const S = sceneAt(sb.meta.world, cur, T, sb.meta.hero);
   // la caméra SUIT le héros quand il se déplace (broute, charge, marche au fond) : il ne sort jamais du cadre
-  const FOLLOW: Record<string, number> = { graze: 1.45, charge: 1.3, under: 1.15, sleep: 1.25, sweat: 1.7 };
+  const FOLLOW: Record<string, number> = { under: 1.1, sleep: 1.2 }; // R6 : plus de caméra collée sur un animal qui marche (effet tapis roulant)
   const hero = S.hippos.find((h) => h.id === "hero");
   if (cur && hero && FOLLOW[cur.preset]) { const k = Math.min(1, Math.max(0, (T - cur.t0) / 1.1)); const kk = k * k * (3 - 2 * k); cam.x = cam.x + (hero.x / PPM + (hero.flip ? -0.8 : 0.8) - cam.x) * kk; cam.z = cam.z + (FOLLOW[cur.preset] - cam.z) * kk; if (cur.preset === "under" || cur.preset === "sleep") cam.y = cam.y + (hero.y / PPM - 1.0 - cam.y) * kk; }
   const cards = beats.filter((b) => isCard(b) && T >= b.t0 - 0.05 && T < b.t1 + 0.1);

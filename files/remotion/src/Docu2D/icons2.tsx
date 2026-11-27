@@ -1,6 +1,7 @@
 // Icônes supplémentaires Docu2D (repère 100×100 centré, aplats papier) — s'ajoutent à IC (icons.tsx).
 import React from "react";
 import { IC } from "./icons";
+import { QuadP, SPECIES } from "./bestiary";
 const I = (d: React.ReactNode) => <g>{d}</g>;
 export const IC2: Record<string, React.ReactNode> = {
   ...IC,
@@ -26,6 +27,12 @@ export const IC2: Record<string, React.ReactNode> = {
   colombia: I(<><path d="M-20,-34 L14,-30 L26,-6 L18,26 L-4,34 L-14,10 L-30,-6 Z" fill="#f2c14e" /><path d="M-30,-6 L-14,10 L-4,34" stroke="#2f5f9a" strokeWidth={6} fill="none" /></>),
   pig: I(<><ellipse rx={34} ry={24} fill="#f2a7b0" /><circle cx={30} cy={-4} r={13} fill="#f2a7b0" /><ellipse cx={40} cy={-2} rx={6} ry={7} fill="#e58a96" /><circle cx={28} cy={-12} r={3} fill="#1d2a30" /><path d="M20,-22 L26,-34 L30,-20 Z" fill="#e58a96" /><path d="M-20,22 L-20,34 M14,22 L14,34" stroke="#e58a96" strokeWidth={7} strokeLinecap="round" /><path d="M-34,-4 q-10,-6 -6,-14" stroke="#e58a96" strokeWidth={4} fill="none" /></>),
   elephant: I(<><ellipse cx={-6} cy={2} rx={30} ry={22} fill="#9a9590" /><circle cx={22} cy={-10} r={16} fill="#9a9590" /><path d="M32,-4 Q42,14 34,32" stroke="#9a9590" strokeWidth={9} fill="none" strokeLinecap="round" /><path d="M10,-22 Q-6,-14 4,6 Q14,4 18,-8 Z" fill="#7c7772" /><path d="M-26,20 L-26,36 M8,20 L8,36" stroke="#9a9590" strokeWidth={9} strokeLinecap="round" /><circle cx={26} cy={-14} r={2.5} fill="#1d2a30" /></>),
+  manatee: I(<><path d="M-40,4 Q-36,-18 -6,-18 Q22,-18 30,-2 Q36,8 46,2 L48,16 Q34,14 28,10 Q14,20 -10,18 Q-34,18 -40,4 Z" fill="#8e9aa3" /><circle cx={-28} cy={-4} r={2.5} fill="#1d2a30" /><path d="M-34,6 Q-30,10 -26,8" stroke="#6f7b84" strokeWidth={2} fill="none" /><path d="M-8,14 Q-12,26 -2,28" stroke="#6f7b84" strokeWidth={5} fill="none" strokeLinecap="round" /></>),
   thermometer: I(<><rect x={-7} y={-36} width={14} height={50} rx={7} fill="#fbf8f1" /><circle cy={22} r={13} fill="#e5533d" /><rect x={-3} y={-10} width={6} height={30} fill="#e5533d" /></>),
 };
-export const icon = (name?: string) => (name && IC2[name]) || IC2.question;
+/** icon("animal:<espèce>") ou "animal:<espèce>:petit" : la silhouette du BESTIAIRE (toujours le bon animal, R7). */
+export const icon = (name?: string) => {
+  const m = /^animal:([a-z]+)(:petit)?$/.exec(name || "");
+  if (m && SPECIES[m[1]]) { const q = SPECIES[m[1]]; const ppm = (m[2] ? 78 : 128) / (q.len + q.head.neck + q.head.len + 0.6); return <g><QuadP q={m[1]} x={-q.head.len * ppm * 0.45} y={m[2] ? 30 : 40} ppm={ppm} st={{ T: 0 }} shadow={false} /></g>; }
+  return (name && IC2[name]) || IC2.question;
+};

@@ -11,7 +11,7 @@ export const Docu2DThumb: React.FC<DocuProps & { thumbText?: string }> = ({ sb, 
   const hero = sb?.meta?.hero && SPECIES[sb.meta.hero] ? sb.meta.hero : "hippo";
   const q = SPECIES[hero];
   const text = (thumbText || (sb as any)?.thumbText || "").toUpperCase();
-  const S = sceneAt(sb?.meta?.world || "savane", undefined, 3);
+  const S = sceneAt(sb?.meta?.world || "savane", undefined, 3, sb?.meta?.hero);
   S.hippos = [];
   const ppm = 560 / (q.len + q.head.len + q.head.neck);
   return (

@@ -7,7 +7,7 @@ AgentOS.register("docu2d", {
   async render(el, params) {
     const { api, esc } = AgentOS;
     let cfg = await api("/api/machines/docu2d");
-    const TABS = ["gen", "runs", "stock", "settings"];
+    const TABS = ["gen", "runs", "stock", "bestiary", "settings"];
     let tab = TABS.includes(localStorage.getItem("d2-tab")) ? localStorage.getItem("d2-tab") : "gen";
     if (params && TABS.includes(params.get("tab"))) tab = params.get("tab");
     let wizTimer = null;
@@ -22,12 +22,12 @@ AgentOS.register("docu2d", {
         <div class="card">
           <h2><a href="#/machines" class="back-btn" style="margin-right:10px" title="Retour aux Machines">←</a>🦛 Docu Papier 2D
             <span class="h-actions"><span class="mini-seg" id="d2-tabs">
-              ${[["gen", "⚙ Générer"], ["runs", "🎞 Runs"], ["stock", "📦 Stock"], ["settings", "🛠 Paramètres"]].map(([k, l]) => `<button data-t="${k}" class="${tab === k ? "active" : ""}">${l}</button>`).join("")}
+              ${[["gen", "⚙ Générer"], ["runs", "🎞 Runs"], ["stock", "📦 Stock"], ["bestiary", "🦛 Bestiaire"], ["settings", "🛠 Paramètres"]].map(([k, l]) => `<button data-t="${k}" class="${tab === k ? "active" : ""}">${l}</button>`).join("")}
             </span></span></h2>
           <div id="d2-body"></div>
         </div>`;
       el.querySelectorAll("#d2-tabs button").forEach((b) => b.addEventListener("click", () => { tab = b.dataset.t; try { localStorage.setItem("d2-tab", tab); } catch {} shell(); }));
-      ({ gen: renderGen, runs: renderRuns, stock: renderStock, settings: renderSettings })[tab]();
+      ({ gen: renderGen, runs: renderRuns, stock: renderStock, bestiary: renderBestiary, settings: renderSettings })[tab]();
     }
 
     // ═══════════════════════════ Générer ═══════════════════════════
@@ -203,6 +203,24 @@ AgentOS.register("docu2d", {
     async function renderStock() {
       const body = el.querySelector("#d2-body"); const st = await api("/api/machines/docu2d/stock");
       body.innerHTML = st.filter((v) => !v.archived).map((v) => `<div class="scrap-row" style="gap:10px">${v.thumbRel ? `<img src="${media(v.thumbRel)}" style="width:120px;border-radius:6px">` : ""}<b class="grow">${esc(v.title)}</b><span class="small">${dur(v.durationSec)}</span><a class="btn btn-sm" href="${media(v.finalRel)}" target="_blank">▶</a><span class="badge ${v.posted ? "mut" : "ok"}">${v.posted ? "postée" : "en stock"}</span></div>`).join("") || `<div class="empty">Stock vide.</div>`;
+    }
+    // ═══════════════════════════ Bestiaire ═══════════════════════════
+    async function renderBestiary() {
+      const body = el.querySelector("#d2-body");
+      const list = await api("/api/machines/docu2d/bestiary");
+      body.innerHTML = `
+        <div class="row between mb"><span class="small muted">Les animaux que la machine sait DESSINER (gabarit quadrupède en mètres : taille réelle, marche à pieds plantés, gueule, cornes, défenses…). La famille et l'habitat décident des scènes : une espèce terrestre n'est jamais posée dans la rivière. Un autre animal terrestre est dessiné avec la silhouette la plus proche ; les plans réels, eux, montrent toujours le vrai animal.</span>
+          <button class="btn btn-sm" id="b-render">↻ Redessiner les planches</button></div>
+        <div class="grid grid-2" style="gap:12px">${list.map((b) => `<div class="scrap-row" style="flex-direction:column;align-items:stretch;gap:6px">
+          ${b.sheet ? `<img src="${media(b.sheet, b.ts)}" style="width:100%;border-radius:8px;background:#f3ecdc">` : `<div class="empty small">Planche pas encore dessinée — clique « Redessiner les planches ».</div>`}
+          <div class="row between"><b>${esc(b.fr)}</b><span class="small muted">${b.h} m au garrot · ${b.l} m de long</span></div>
+          <div class="row" style="gap:6px;flex-wrap:wrap"><span class="badge ${b.aquatic ? "accent" : "mut"}">${b.aquatic ? "aquatique" : "terrestre"}</span>${b.gape ? '<span class="badge warn">gueule ouverte (menace)</span>' : ""}<span class="small muted">${esc(b.note)}</span></div>
+        </div>`).join("")}</div>
+        <div class="small muted" style="margin-top:10px">Ajouter une espèce : une fiche de paramètres dans <code>remotion/src/Docu2D/bestiary.tsx</code> (SPECIES) + sa taille réelle (REAL), puis l'ajouter à BESTIARY dans <code>lib/machines/docu2d.js</code>.</div>`;
+      body.querySelector("#b-render").addEventListener("click", async (e) => {
+        const b = e.target; b.disabled = true; b.textContent = "⏳ Dessin des planches (1-2 min)…";
+        try { await api("/api/machines/docu2d/bestiary/render", { method: "POST" }); renderBestiary(); } catch (err) { AgentOS.toast(err.message, "err"); b.disabled = false; b.textContent = "↻ Redessiner les planches"; }
+      });
     }
     async function renderSettings() {
       const body = el.querySelector("#d2-body"); const s = cfg.settings;

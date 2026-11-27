@@ -49,6 +49,8 @@ Estimations de la machine elle-même (`POST /api/machines/docu2d/estimate`), ava
 
 ## Limites honnêtes de cette version (v1)
 
+- **Qualité visuelle : en dessous des vidéos mises en scène à la main.** Le monde dessiné n'a encore qu'une dizaine de scènes génériques ; sur une espèce autre que l'hippopotame (pour qui elles ont été écrites), il se résume souvent à l'animal seul dans la plaine. Les contrôles empêchent les erreurs grossières (cartes vides, icônes fausses, animal dans la mauvaise scène, texte illisible) mais ne créent pas la richesse visuelle. Voir `docs/DISSECTION-DOCU2D-V1.md`. Relis toujours la planche à l'arrêt Semi-manuel.
+
 - **Bestiaire : 6 animaux à quatre pattes** — hippopotame, lion, éléphant, buffle, rhinocéros, crocodile. Tu peux traiter un autre animal terrestre : le LLM choisit la silhouette la plus proche pour le dessin (les plans réels, eux, montrent le vrai animal).
 - **Un seul monde : la savane** (plaine, berge, rivière avec troupeau). Les familles marin, insectes, oiseaux et phénomènes sont prévues pour les **phases suivantes** (grisées dans l'interface).
 - **Zéro vidéo IA** (choix de la recette de la niche) et **pas de fair use** : uniquement des plans sous licence libre, crédités.
