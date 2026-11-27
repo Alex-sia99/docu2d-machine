@@ -225,3 +225,18 @@ Feuille de route de la future machine : [FEUILLE-DE-ROUTE-MACHINE-DOCU2D.md](FEU
 −13,2 LUFS, voix contrôlée par transcription au début, à 4:52 (plan Irukandji) et à la fin. Fichiers :
 `agent-os/output/niche-animaux/meduse-boite-8min-v8.1-1080p.mp4` et `-telegram.mp4` (720p, 19,7 Mo), Telegram message 613.
 Description YouTube prête (chapitres, sources des faits, **sources des images**) : `out-niche/j8-description.txt`.
+
+## v8.2 + première vidéo terrestre (27/11/2026)
+Retours d'Alex sur la v8.1 : (1) **coupures nettes de la voix** (flagrant à 1:38) — les fichiers ElevenLabs finissent
+souvent par un bruit parasite ~0,35 s après la phrase, tronqué par la fin du fichier ; `vo-tighten.js` coupe désormais au
+début de la vraie pause finale (≥ 0,13 s, jamais l'occlusion d'un « p ») + fondus ; les départs des répliques sont
+gardés identiques (seules les fins changent) ; 49 fins de phrase retranscrites. (2) **Texte qui reste après la photo** —
+`vis()` fait sortir étiquettes/badges PENDANT que la carte glisse. (3) **Massage cardiaque équivoque** (sauveteur à cheval
+sur l'enfant) — sauveteur agenouillé DERRIÈRE la victime, vu de face, bras tendus, bassin caché par son corps ; règle
+`kneelBehind` + contrôle « au niveau de la poitrine, jamais du bassin ». Livré : Telegram 616 (`meduse-boite-8min-v8.2-*`).
+
+**Hippopotame (9 min 56)** — premier film du moteur générique Docu2D (storyboard ancré sur les mots) : histoire vraie de
+Paul Templer (Zambèze, 1996) en accroche, 5 questions, chiffre « 500 morts/an » présenté honnêtement (estimation
+d'encyclopédie, fourchette 500-3 000, pas de données médicales), plans réels libres 11 %, voix clonée d'Alex (débit
+204 mots/min de parole). Fichiers : `agent-os/output/machines/d2-hippo/` (script, storyboard, timeline, final.mp4),
+description `out-niche/hippo-description.txt`.

@@ -15,10 +15,10 @@ Une usine à **documentaires animaliers en papier découpé**, dans le style des
 | Étape | Ce qui se passe |
 |---|---|
 | **1. Faits** | Pages Wikipédia FR + EN du sujet → registre de faits courts, chacun avec sa source. Un chiffre mal établi est marqué « incertain » et sera dit avec prudence. Le LLM cherche aussi une histoire vraie datée pour l'accroche et choisit l'animal du bestiaire qui le dessinera. |
-| **2. Script** | Accroche « vous » (6-8 répliques), question-titre + sommaire, 5 chapitres « Question numéro N », CTA au milieu, fin en commentaire. La longueur est calculée sur le **débit mesuré** de la voix choisie (recalé à chaque run). Ton et rythme calqués sur l'exemple fourni. |
+| **2. Script** | Accroche « vous » (6-8 répliques), question-titre + sommaire, 5 chapitres « Question numéro N », CTA au milieu, fin en commentaire. La longueur est calculée sur le **débit mesuré** de la voix choisie (recalé à chaque run). Ton et rythme calqués sur l'exemple fourni. Puis une **relecture des faits** : chaque réplique est confrontée au registre, toute affirmation non sourcée est réécrite ou retirée. |
 | **3. Voix** | ElevenLabs réplique par réplique, avec l'alignement mot à mot ; resserrage des silences, fins de phrase propres, pauses ajustées pour tomber sur la durée visée. Les répliques déjà générées sont en cache. |
 | **4. Storyboard** | Le LLM n'écrit que des « beats » typés (carte, étiquette, scène du monde, plan réel) ancrés sur **un mot exact** de la voix. La mise en page est calculée. Le **vérificateur** (`remotion/scripts/d2-check.ts`) contrôle ancrages, durées de lecture, encombrement, longueur des textes et physique du monde image par image ; le storyboard est corrigé jusqu'à 0 anomalie. |
-| **5. Plans réels** | Plans **libres de droits** : Pexels, Pixabay, Wikimedia Commons. Crédits enregistrés automatiquement. Images IA seulement si tu l'autorises, en dernier recours. La part de plans réels est **mesurée** et affichée. Une planche de relecture de 24 images est rendue. |
+| **5. Plans réels** | Plans **libres de droits** : Pexels, Pixabay, Wikimedia Commons. Crédits enregistrés automatiquement. Images IA seulement si tu l'autorises, en dernier recours. La part de plans réels est **mesurée** et affichée. Une planche de relecture de 24 images est rendue. Chaque plan est **regardé par un modèle de vision** avant d'être gardé : bonne espèce exacte (un buffle d'eau asiatique n'est pas un buffle d'Afrique), vraie vidéo, scène conforme, pas en captivité — sinon candidat suivant. Sous la cible, la machine complète ; si un plan est introuvable (ex. une attaque de lion), il est retiré plutôt que remplacé par un plan trompeur. |
 | **6. Rendu** | Remotion, composition `Docu2D` (entrée séparée `remotion/src/docu2d.tsx` : ton `Root.tsx` n'est pas touché). |
 | **7. Mix** | Musique Suno enchaînée sur elle-même jusqu'à la fin, ducking sous la voix, −14 LUFS. Puis le **contrôle d'écoute** : début, milieu et fin de la vidéo finale sont transcrits (faster-whisper) et comparés au script. Une vidéo muette ou sans voix est refusée. |
 | **8. Packaging** | Titre aux formules de la niche, description (accroche, chapitres horodatés, sources des faits, sources des images), tags, miniature. La vidéo va au Stock ; publication YouTube privée par défaut (si tu l'actives). |
@@ -39,13 +39,13 @@ Estimations de la machine elle-même (`POST /api/machines/docu2d/estimate`), ava
 
 | Durée | Voix ElevenLabs | Musique Suno | Textes (OpenRouter) | **Total** | Rendu Remotion |
 |---|---|---|---|---|---|
-| 3 min | ~2 500 caractères, 0,37 $ | 0,06 $ | 0,08 $ | **≈ 0,51 $** | ≈ 5 min |
-| 10 min | ~8 300 caractères, 1,24 $ | 0,06 $ | 0,08 $ | **≈ 1,38 $** | ≈ 17 min |
-| 20 min | ~16 500 caractères, 2,48 $ | 0,06 $ | 0,08 $ | **≈ 2,62 $** | ≈ 34 min |
+| 3 min | ~2 500 caractères, 0,37 $ | 0,06 $ | 0,08 $ | **≈ 0,51 $** | ≈ 15 min |
+| 10 min | ~8 300 caractères, 1,24 $ | 0,06 $ | 0,08 $ | **≈ 1,38 $** | ≈ 45 min |
+| 20 min | ~16 500 caractères, 2,48 $ | 0,06 $ | 0,08 $ | **≈ 2,62 $** | ≈ 1 h 30 |
 
 - La voix est comptée au tarif public (0,15 $ / 1 000 caractères). **Si ton abonnement ElevenLabs couvre ces caractères, elle ne te coûte rien de plus** — vérifie juste ton quota mensuel : une vidéo de 10 min en consomme ~8 000.
 - Plans réels : gratuits (Pexels, Pixabay, Commons). Images IA de secours (si activées) : ~0,02 $ l'image via Kie.
-- Le temps est surtout celui du rendu Remotion (~1,7 min par minute de vidéo, 6 rendus en parallèle — ça dépend de ton PC). Ajoute quelques minutes pour la voix, 1 à 4 passes de storyboard, la musique Suno (2 à 5 min) et le contrôle d'écoute. Au tout premier run, faster-whisper télécharge son modèle « small » (~500 Mo).
+- Le temps est surtout celui du rendu Remotion : **mesuré ≈ 50 min pour la vidéo hippopotame de 10 min** (6 rendus en parallèle, sur le PC d'Alex occupé par d'autres tâches) — compte 4 à 5 min de rendu par minute de vidéo, moins sur une machine dédiée. Ajoute quelques minutes pour la voix, 1 à 4 passes de storyboard, la musique Suno (2 à 5 min) et le contrôle d'écoute. Au tout premier run, faster-whisper télécharge son modèle « small » (~500 Mo).
 
 ## Limites honnêtes de cette version (v1)
 

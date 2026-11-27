@@ -152,7 +152,7 @@ async function stepFacts(run) {
   ].filter(Boolean).join("\n\n"), "Faits");
   if (!Array.isArray(j.facts) || j.facts.length < 8) throw new Error(`registre de faits trop maigre (${(j.facts || []).length} faits — pages : ${[fr, en].filter(Boolean).map((x) => x.title).join(", ") || "aucune"})`);
   run.facts = j.facts; run.story = j.story || null;
-  run.meta = { hero: SPECIES_OK.includes(j.hero) ? j.hero : "hippo", family: run.params.family !== "auto" ? run.params.family : (j.family || "terrestre"), world: "savane", angle: j.angle || "" };
+  run.meta = { enName: en ? en.title.replace(/\s*\(.*\)$/, "").toLowerCase() : null, hero: SPECIES_OK.includes(j.hero) ? j.hero : "hippo", family: run.params.family !== "auto" ? run.params.family : (j.family || "terrestre"), world: "savane", angle: j.angle || "" };
   run.sources = [fr, en].filter(Boolean).map((x) => ({ title: x.title, url: x.url }));
   addCost(run, "llm", 0.02, "openrouter", "faits");
   log(run, `📚 ${run.facts.length} faits sourcés · espèce dessinée : ${run.meta.hero} · famille : ${run.meta.family}${run.story?.who ? ` · histoire : ${run.story.who}` : ""}`);
@@ -254,6 +254,8 @@ function stageRun(run) {
   const dir = runDir(run);
   const r = st.stage(dir, run.id, { lang: run.params.lang });
   try { fs.copyFileSync(path.join(PUB_DIR, "paper.png"), path.join(PUB_DIR, run.id, "paper.png")); } catch {}
+  // chaque run est bundlé avec SON dossier comme --public-dir : les chemins d'assets sont relatifs à ce dossier
+  r.props.root = ""; fs.writeFileSync(path.join(PUB_DIR, run.id, "props.json"), JSON.stringify(r.props));
   return r;
 }
 async function stepStoryboard(run) {
@@ -261,7 +263,7 @@ async function stepStoryboard(run) {
   const tl = jsonOf(path.join(dir, "timeline.json")); const script = jsonOf(path.join(dir, "script.json"));
   const gold = jsonOf(path.join(GOLD, "storyboard.json"));
   const lines = tl.lines.map((l) => `${l.id} [${l.scene}] (${l.dur.toFixed(1)} s) ${l.text}`).join("\n");
-  const nBroll = Math.max(4, Math.round((tl.total * (run.params.realPct / 100)) / 6.5));
+  const nBroll = Math.max(3, Math.ceil((tl.total * (run.params.realPct / 100)) / 4.5));
   let sb = null, issues = [];
   for (let a = 1; a <= 4; a++) {
     const prompt = a === 1 || !sb ? [
@@ -307,12 +309,50 @@ async function stepStoryboard(run) {
 }
 
 // ---------------------------------------------------------------- 5. plans réels libres
+/** réessaie avec un DÉLAI MAX par tentative (une API muette ne fige jamais le run : vu avec Pexels le 27/11) */
+async function retry(fn, n = 3, ms = 30000) { let e; for (let i = 0; i < n; i++) { try { return await Promise.race([fn(), new Promise((_, rej) => setTimeout(() => rej(new Error("délai réseau dépassé")), ms))]); } catch (x) { e = x; await sleep(1500 * (i + 1)); } } throw e; }
 async function searchClip(q, srcs, used) {
   const cands = [];
-  if (srcs.includes("pexels") && vault.get("pexels")) { try { const px = require("../pexels"); for (const v of await px.searchVideos(q, { perPage: 12 })) { const f = px.pickVideoFile(v); const sc = px.scoreVideo(v, 7); if (f && sc > 0) cands.push({ id: `px${v.id}`, src: "pexels", url: f.link, score: sc + 1, author: v.user?.name || "", license: "licence Pexels", page: v.url, dur: v.duration }); } } catch {} }
-  if (srcs.includes("pixabay")) { try { const pb = require("../pixabay"); for (const v of await pb.searchVideos(q, { perPage: 12 })) { const f = pb.pickVideoFile(v); if (f && v.duration >= 4) cands.push({ id: `pb${v.id}`, src: "pixabay", url: f.link, score: (v.duration >= 7 ? 6 : 3) + (f.width >= 1280 ? 2 : 0), author: v.user || "", license: "licence Pixabay", page: v.pageURL || "", dur: v.duration }); } } catch {} }
+  if (srcs.includes("pexels") && vault.get("pexels")) { try { const px = require("../pexels"); for (const v of await retry(() => px.searchVideos(q, { perPage: 12 }))) { const f = (v.video_files || []).find((x) => Number(x.width) === 1280 && /mp4/i.test(x.file_type || "mp4")) || px.pickVideoFile(v); const sc = px.scoreVideo(v, 7); /* 720p éco : le plan est recoupé en 1280 de toute façon */ if (f && sc > 0) cands.push({ id: `px${v.id}`, src: "pexels", url: f.link, score: sc + 1, author: v.user?.name || "", license: "licence Pexels", page: v.url, dur: v.duration }); } } catch {} }
+  if (srcs.includes("pixabay")) { try { const pb = require("../pixabay"); for (const v of await retry(() => pb.searchVideos(q, { perPage: 12 }))) { const f = (v.video_files || []).find((x) => Number(x.width) === 1280) || pb.pickVideoFile(v); if (f && v.duration >= 4) cands.push({ id: String(v.id).startsWith("pb") ? String(v.id) : `pb${v.id}`, src: "pixabay", url: f.link, score: (v.duration >= 7 ? 6 : 3) + (f.width >= 1280 ? 2 : 0), author: v.user || "", license: "licence Pixabay", page: v.page || v.pageURL || "", dur: v.duration }); } } catch {} }
   if (srcs.includes("commons")) { try { const os = require("../opensources"); for (const v of await os.commons(q, { kind: "video", perPage: 8 })) { const f = (v.video_files || [])[0]; if (f && (f.width || 0) >= 640) cands.push({ id: v.id, src: "commons", url: f.link, score: 3, author: v.author, license: v.license, page: v.page, dur: v.duration }); } } catch {} }
-  return cands.filter((c) => !used.has(c.id)).sort((a, b) => b.score - a.score)[0] || null;
+  return cands.filter((c) => !used.has(c.id)).sort((a, b) => b.score - a.score);
+}
+/** Télécharge un candidat, le recoupe en 720p, puis le fait REGARDER par Qwen (vision) : bonne espèce EXACTE, vraie vidéo,
+ *  scène conforme. Leçon du buffle (27/11) : la recherche « african buffalo » ramène des buffles d'eau asiatiques et une
+ *  requête « lion attacking buffalo » un buffle caressé derrière une clôture. Rejeté → candidat suivant. */
+async function fetchVerified(run, name, queries, srcs, used, bdir, rejected) {
+  const lab = require("../lab"); const sp = SPECIES_NAME(run); let tries = 0;
+  for (const q of queries) {
+    const generic = q === sp || q === sp.split(" ").pop();
+    for (const c of (await searchClip(q, srcs, used)).filter((x) => !rejected.has(x.id)).slice(0, 3)) {
+      if (++tries > 7) return null;
+      const raw = path.join(bdir, `${name}.raw`), out = path.join(bdir, `${name}.mp4`);
+      try {
+        fs.writeFileSync(raw, await retry(async () => { const r = await fetch(c.url, { headers: { "User-Agent": UA } }); if (!r.ok) throw new Error("HTTP " + r.status); return Buffer.from(await r.arrayBuffer()); }, 3, 180000));
+        await new Promise((res, rej) => { const p = spawn("ffmpeg", ["-v", "error", "-y", "-i", raw, "-t", "20", "-an", "-vf", "scale=1280:-2,fps=30", "-c:v", "libx264", "-crf", "22", "-preset", "veryfast", "-pix_fmt", "yuv420p", out], { windowsHide: true }); track(p); p.stdout.on("data", () => {}); p.on("close", (code) => (code === 0 ? res() : rej(new Error("ffmpeg")))); });
+        try { fs.unlinkSync(raw); } catch {}
+        const d = await voice.dur(out); const frames = [0.25, 0.65].map((k, i) => { const fp = path.join(bdir, `${name}-v${i}.jpg`); require("child_process").execFileSync("ffmpeg", ["-v", "error", "-y", "-ss", String((d * k).toFixed(2)), "-i", out, "-frames:v", "1", "-vf", "scale=640:-2", fp]); return fp; });
+        const content = [{ type: "text", text: [
+          `Ces deux images viennent du même plan vidéo, prévu pour illustrer un documentaire sur : ${run.params.subject} (${sp}).`,
+          `Plan attendu : « ${q} ».`,
+          `- species : l'animal principal que tu vois (nom courant + scientifique si possible) ;`,
+          `- ok : true SEULEMENT si c'est exactement cette espèce (${sp}), pas une espèce voisine (ex. buffle d'eau asiatique ≠ buffle d'Afrique, éléphant d'Asie ≠ d'Afrique) ;`,
+          `- real : true si c'est une vraie vidéo filmée (pas un dessin, une 3D, un écran, un texte) ;`,
+          `- matches : true si la scène correspond au plan attendu${generic ? " (ici : n'importe quel plan naturel de l'espèce convient)" : ""} ;`,
+          `- captive : true si on voit un zoo, une clôture, une cage, des humains qui la nourrissent.`,
+          'JSON UNIQUEMENT : {"species":"","ok":false,"real":true,"matches":false,"captive":false,"scene":""}'].join("\n") },
+          ...frames.map((fp) => ({ type: "image_url", image_url: { url: "data:image/jpeg;base64," + fs.readFileSync(fp).toString("base64") } }))];
+        const v = await lab.askVision(content); addCost(run, "check", v.cost || 0.001, "openrouter", "vision b-roll");
+        frames.forEach((fp) => { try { fs.unlinkSync(fp); } catch {} });
+        const j = v.json || {};
+        if (j.ok && j.real !== false && (j.matches || generic) && !j.captive) return { c, q, seen: j.scene || j.species };
+        rejected.add(c.id); try { fs.unlinkSync(out); } catch {}
+        log(run, `👁 ${name} : ${c.src} ${c.id} refusé — ${j.species || "?"}${j.captive ? ", en captivité" : ""}${j.matches === false && !generic ? ", scène différente" : ""}`);
+      } catch (e) { rejected.add(c.id); try { fs.unlinkSync(raw); } catch {} log(run, `⚠ ${name} : ${c.id} — ${e.message.slice(0, 100)}`); }
+    }
+  }
+  return null;
 }
 async function aiImage(run, prompt, file) {
   const key = vault.get("kie"); if (!key) throw new Error("clé Kie absente");
@@ -329,25 +369,16 @@ async function stepBroll(run) {
   const used = new Set(Object.values(credits).map((c) => c.id));
   const srcs = run.params.sources || config().settings.sources;
   const names = [...new Set(sb.beats.filter((b) => b.type === "broll").map((b) => b.asset))];
-  let ok = 0, ai = 0, dropped = 0;
+  let ok = 0, ai = 0, dropped = 0; const rejected = new Set();
   for (const name of names) {
     checkCancel();
     if (fs.existsSync(path.join(bdir, `${name}.mp4`)) || fs.existsSync(path.join(bdir, `${name}.jpg`))) { ok++; continue; }
     const beat = sb.beats.find((b) => b.asset === name);
     const q = beat.query || `${SPECIES_NAME(run)} ${name.replace(/_/g, " ")}`;
-    let c = await searchClip(q, srcs, used);
-    if (!c) c = await searchClip(`${SPECIES_NAME(run)} wild`, srcs, used);
-    if (c) {
-      try {
-        const raw = path.join(bdir, `${name}.raw`);
-        fs.writeFileSync(raw, Buffer.from(await (await fetch(c.url, { headers: { "User-Agent": UA } })).arrayBuffer()));
-        await new Promise((res, rej) => { const p = spawn("ffmpeg", ["-v", "error", "-y", "-i", raw, "-t", "20", "-an", "-vf", "scale=1280:-2,fps=30", "-c:v", "libx264", "-crf", "22", "-preset", "veryfast", "-pix_fmt", "yuv420p", path.join(bdir, `${name}.mp4`)], { windowsHide: true }); track(p); p.stdout.on("data", () => {}); p.on("close", (code) => (code === 0 ? res() : rej(new Error("ffmpeg")))); });
-        fs.unlinkSync(raw);
-        credits[name] = { id: c.id, src: c.src, author: c.author, license: c.license, page: c.page }; used.add(c.id); ok++;
-        log(run, `🎞 ${name} ← ${c.src} (${c.id}) « ${q} »`);
-        continue;
-      } catch (e) { log(run, `⚠ ${name} : téléchargement échoué (${e.message})`); }
-    }
+    const sp = SPECIES_NAME(run); const qw = q.split(/\s+/);
+    const tries = [q, qw.slice(0, 3).join(" "), `${sp} ${qw.find((w) => /ing$/.test(w)) || ""}`.trim(), sp, sp.split(" ").pop()];
+    const got = await fetchVerified(run, name, [...new Set(tries)], srcs, used, bdir, rejected);
+    if (got) { const c = got.c; credits[name] = { id: c.id, src: c.src, author: c.author, license: c.license, page: c.page, seen: got.seen }; used.add(c.id); ok++; log(run, `🎞 ${name} ← ${c.src} (${c.id}) « ${got.q} » ✓ vu : ${got.seen}`); continue; }
     if (run.params.aiImages) {
       try { await aiImage(run, `Paper cut-out documentary illustration, ${q}, flat layered paper shapes, soft paper texture, natural colors, 16:9, no text, no logo`, path.join(bdir, `${name}.jpg`)); credits[name] = { id: `ai-${name}`, src: "ai", author: "", license: "illustration IA", page: "" }; ai++; continue; } catch (e) { log(run, `⚠ image IA : ${e.message}`); }
     }
@@ -357,7 +388,33 @@ async function stepBroll(run) {
   fs.writeFileSync(path.join(bdir, "credits.json"), JSON.stringify(credits, null, 1));
   fs.writeFileSync(path.join(dir, "storyboard.json"), JSON.stringify(sb, null, 1));
   stageRun(run);
-  const chk = await d2check(run);
+  let chk = await d2check(run);
+  // COMPLÉMENT : sous la cible (−2 pts), on ajoute des plans sur les répliques SANS carte (le monde y est seul), du milieu vers les bords
+  if (chk.realPct < run.params.realPct - 2) {
+    const tl = jsonOf(path.join(dir, "timeline.json"));
+    const CARD = new Set(["title", "toc", "chapter", "bignum", "compare", "bars", "broll", "photo", "map", "anatomy", "quiz", "timeline", "quote", "icons", "outro", "cta"]);
+    const busy = new Set(sb.beats.filter((b) => CARD.has(b.type)).map((b) => b.line));
+    const free = tl.lines.filter((l, i) => i > 2 && i < tl.lines.length - 2 && !busy.has(l.id) && l.dur >= 3.5);
+    const sp = SPECIES_NAME(run); const kinds = ["close up", "walking", "herd", "water", "eating", "resting", "running"];
+    let k = 0;
+    for (const l of free) {
+      if (chk.realPct + (100 * k * 4.5) / tl.total >= run.params.realPct) break;
+      const name = `extra_${k + 1}`; const q = `${sp} ${kinds[k % kinds.length]}`;
+      const got = await fetchVerified(run, name, [q, sp], srcs, used, bdir, rejected); if (!got) break; const c = got.c;
+      try {
+        credits[name] = { id: c.id, src: c.src, author: c.author, license: c.license, page: c.page, seen: got.seen }; used.add(c.id);
+        sb.beats.push({ type: "broll", line: l.id, asset: name, query: q }); k++;
+        log(run, `➕ ${name} (${l.id}) ← ${c.src} « ${q} »`);
+      } catch (e) { log(run, `⚠ complément ${name} : ${e.message}`); }
+    }
+    if (k) { fs.writeFileSync(path.join(bdir, "credits.json"), JSON.stringify(credits, null, 1)); fs.writeFileSync(path.join(dir, "storyboard.json"), JSON.stringify(sb, null, 1)); stageRun(run); chk = await d2check(run); }
+  }
+  // toujours sous la cible : chaque plan réel est PROLONGÉ sur la réplique suivante (il s'arrête à la carte suivante, exclusivité oblige)
+  if (chk.realPct < run.params.realPct - 2) {
+    const tl2 = jsonOf(path.join(dir, "timeline.json")); let ext = 0;
+    for (const b of sb.beats.filter((x) => x.type === "broll" && !x.until && !x.untilLine)) { const i = tl2.lines.findIndex((l) => l.id === b.line); if (i >= 0 && i < tl2.lines.length - 2) { b.untilLine = tl2.lines[i + 1].id; ext++; } }
+    if (ext) { fs.writeFileSync(path.join(dir, "storyboard.json"), JSON.stringify(sb, null, 1)); stageRun(run); const c2 = await d2check(run); if (!(c2.anomalies || []).length) { chk = c2; log(run, `⤳ ${ext} plan(s) réel(s) prolongé(s) → ${chk.realPct} %`); } }
+  }
   run.check = { anomalies: chk.anomalies || [], realPct: chk.realPct, cardPct: chk.cardPct, target: run.params.realPct };
   log(run, `✅ Plans réels : ${ok}${ai ? ` + ${ai} illustration(s) IA` : ""}${dropped ? ` · ${dropped} sans plan` : ""} · part réelle mesurée ${chk.realPct} % (cible ${run.params.realPct} %) · ${run.check.anomalies.length} anomalie(s)`);
   if (run.check.anomalies.length) throw new Error(`vérificateur : ${run.check.anomalies.length} anomalie(s) — ${run.check.anomalies.slice(0, 3).map((i) => i.msg).join(" · ")}`);
@@ -367,7 +424,7 @@ async function stepBroll(run) {
     run.sheets = fs.readdirSync(path.join(dir, "planche")).filter((f) => f.startsWith("sheet-")).map((f) => `agent-os/output/machines/${run.id}/planche/${f}`);
   } catch (e) { log(run, "planche : " + e.message.slice(0, 200)); }
 }
-const SPECIES_NAME = (run) => ({ hippo: "hippo", lion: "lion", elephant: "elephant", buffalo: "buffalo", rhino: "rhino", crocodile: "crocodile" }[run.meta?.hero] || run.params.subject);
+const SPECIES_NAME = (run) => run.meta?.enName || ({ hippo: "hippo", lion: "lion", elephant: "elephant", buffalo: "african buffalo", rhino: "rhino", crocodile: "crocodile" }[run.meta?.hero] || run.params.subject);
 
 // ---------------------------------------------------------------- 6. rendu
 async function stepRender(run, onProgress) {
@@ -594,7 +651,7 @@ function estimate({ durationMin = 10, voice: v, aiImages, music = true } = {}) {
   const chars = Math.round(Number(durationMin) * 60 * 0.85 * speechWpm(v || s.voice, s) / 60 * 5.9);
   const voiceUsd = (chars / 1000) * PRICES.elevenPer1kChars;
   const total = voiceUsd + (music ? PRICES.music : 0) + PRICES.llm + (aiImages ? 3 * PRICES.aiImage : 0);
-  return { chars, usd: +total.toFixed(2), detail: { voice: +voiceUsd.toFixed(2), music: music ? PRICES.music : 0, llm: PRICES.llm, ai: aiImages ? 3 * PRICES.aiImage : 0 }, wpm: speechWpm(v || s.voice, s), renderMin: Math.round(Number(durationMin) * 1.7) };
+  return { chars, usd: +total.toFixed(2), detail: { voice: +voiceUsd.toFixed(2), music: music ? PRICES.music : 0, llm: PRICES.llm, ai: aiImages ? 3 * PRICES.aiImage : 0 }, wpm: speechWpm(v || s.voice, s), renderMin: Math.round(Number(durationMin) * 4.5) }; // mesuré : hippopotame 10 min → ≈ 50 min de rendu (6 en parallèle, PC chargé)
 }
 async function suggestThemes(count = 1) { const ideas = await suggestTopics(Math.min(Math.max(Number(count) || 1, 1), 8)); return ideas.map((i) => ({ title: i.title, text: i.subject, pitch: i.why })); }
 async function orderRun({ publishChannelId, publishPrivacy, publish, overrides, theme } = {}) {

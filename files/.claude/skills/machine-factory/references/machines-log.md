@@ -247,3 +247,27 @@ La machine POV (n°7, août 2026, clonée de `stickman.js`) est distribuée dans
 - **Installateur insensible aux fins de ligne** : les fichiers d'un Agent OS Windows sont en CRLF ; l'ancre `require(...);\n` reprise de l'installateur datarank échouait dessus (révélé par le bac à sable `git archive`). Le pack POV normalise tout texte inséré sur l'EOL du fichier cible (`eolOf`/`withEol`) — à reporter dans les prochains installateurs (et à vérifier dans wealth/datarank si quelqu'un remonte le problème).
 - Manifeste `pov.export.json` d'Alex : marqueur de fin périmé (`MACHINE Musique` alors que DATA RANKING suit le bloc POV depuis septembre) → corrigé en `MACHINE DATA RANKING`.
 - Testé sur un bac à sable `git archive HEAD` (OS du 29/07, d'avant POV) : installation complète sans action manuelle, 2e passe sans aucun `✓`, `node --check` sur les 5 fichiers patchés, module chargé (`estimate` 25 min / 10 niveaux = 7,08 $), `npx remotion compositions` liste `PovPyramid` + `StickmanCta`. Le serveur du bac à sable n'a pas été démarré (l'Agent OS d'Alex occupait le port).
+
+---
+
+## Machine n°10 — « Docu Papier 2D » (27 novembre 2026) — `lib/machines/docu2d.js`
+Documentaires animaliers papier découpé (Oceanverse / Depth Theory), banque « Docu Animaux 2D ». **Squelette Data Ranking**
+(Remotion piloté par JSON) + ressource partagée façon Stickman (banque `cast2d` + bestiaire), PAS un clone Time Travel.
+- **Nouveau mécanisme générique : le STORYBOARD typé ancré sur les MOTS.** Le LLM n'écrit jamais une coordonnée : des beats
+  `{type, line, at:"mot"}` (cartes exclusives, étiquettes, scènes du monde). Le moteur (`remotion/src/Docu2D/timing.ts`)
+  résout les temps, coupe une carte par la suivante, range les étiquettes dans des emplacements libres, fait sortir tout ce
+  qui appartient à une carte AVEC elle. Un **vérificateur** (`scripts/d2-check.ts`, même code que le rendu) refuse :
+  ancrage introuvable, carte < 1,6 s, étiquette < 1,3 s ou > 38 car., > 3 étiquettes simultanées, physique (pieds, sol,
+  chevauchement, flottaison) image par image. Boucle LLM « corrige UNIQUEMENT ces anomalies » (≤ 4 essais) puis retrait
+  des beats fautifs. Converge en 2 essais sur le buffle.
+- **Relecture des faits** après le script : chaque réplique confrontée au registre (Wikipédia FR + EN par lien
+  interlangue — jamais de recherche aveugle en anglais avec un sujet français) ; non sourcée → réécrite ou retirée.
+  Sans elle, le LLM a inventé une charge de buffle sur un naturaliste de 1779 et un conseil de sécurité.
+- **Voix** : `lib/docu2d/voice.js` (cache par réplique, resserrage avec fin de phrase à la vraie pause ≥ 0,13 s — jamais
+  une occlusion de consonne —, fondus 10/12/60 ms) ; `pauseForTarget` règle les pauses pour viser la durée ; débit de
+  parole mesuré et mémorisé par voix (`pace`).
+- **Mix** : `lib/docu2d/mix.js` — musique Suno enchaînée sur elle-même (un morceau de 2 min ne couvre pas 10 min : bj-mix
+  ne bouclait qu'une fois), contrôle d'écoute par transcription obligatoire.
+- **Clé requise** : au moins Pixabay OU Pexels (refus à la création du run) ; coffre étendu (`pixabay`, `elevenlabs`).
+- **Limites v1** : bestiaire 4 pattes (hippo, lion, éléphant, buffle, rhino, crocodile), monde savane ; presets de scène
+  (canoe, night, gape, calf, under, sweat…) écrits pour l'hippopotame — à généraliser par famille.
