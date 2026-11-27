@@ -1,0 +1,7 @@
+node_modules/
+*.bak-docu2d
+.DS_Store
+Thumbs.db
+.env
+/data/
+/output/

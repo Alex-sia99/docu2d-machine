@@ -1,0 +1,1118 @@
+{
+ "meta": {
+  "title": "Pourquoi un herbivore est l'un des animaux les plus dangereux d'Afrique",
+  "lang": "fr",
+  "world": "savane",
+  "hero": "hippo",
+  "family": "terrestre"
+ },
+ "chapters": [
+  {
+   "title": "Combien de morts ?",
+   "icon": "skull"
+  },
+  {
+   "title": "Avec quelles armes ?",
+   "icon": "tooth"
+  },
+  {
+   "title": "Pourquoi attaque-t-il ?",
+   "icon": "shield"
+  },
+  {
+   "title": "Ce qu'il cache",
+   "icon": "eye"
+  },
+  {
+   "title": "Les hippos d'Escobar",
+   "icon": "globe"
+  }
+ ],
+ "beats": [
+  {
+   "type": "world",
+   "line": "l01",
+   "preset": "canoe",
+   "events": [
+    {
+     "do": "surface",
+     "line": "l04",
+     "at": "surgit"
+    },
+    {
+     "do": "flip",
+     "line": "l04",
+     "at": "projette"
+    },
+    {
+     "do": "rush",
+     "line": "l04",
+     "at": "pagaie"
+    },
+    {
+     "do": "dark",
+     "line": "l05",
+     "at": "noir"
+    }
+   ]
+  },
+  {
+   "type": "tag",
+   "line": "l01",
+   "at": "Zambèze",
+   "text": "le Zambèze",
+   "sub": "juste au-dessus des chutes Victoria"
+  },
+  {
+   "type": "broll",
+   "line": "l02",
+   "at": "Devant",
+   "asset": "tete"
+  },
+  {
+   "type": "tag",
+   "line": "l02",
+   "at": "rocher",
+   "text": "« un rocher »"
+  },
+  {
+   "type": "tag",
+   "line": "l03",
+   "at": "9",
+   "text": "9 mars 1996",
+   "kind": "yellow"
+  },
+  {
+   "type": "tag",
+   "line": "l03",
+   "at": "Paul",
+   "text": "Paul Templer, 27 ans",
+   "sub": "guide de rivière"
+  },
+  {
+   "type": "tag",
+   "line": "l04",
+   "at": "Evans",
+   "text": "Evans, son apprenti"
+  },
+  {
+   "type": "tag",
+   "line": "l05",
+   "at": "taille",
+   "text": "jusqu'à la taille dans sa gueule",
+   "kind": "orange"
+  },
+  {
+   "type": "world",
+   "line": "l05b",
+   "preset": "herd",
+   "spot": "river"
+  },
+  {
+   "type": "tag",
+   "line": "l05b",
+   "at": "Trois",
+   "text": "trois charges",
+   "kind": "orange"
+  },
+  {
+   "type": "bignum",
+   "line": "l06",
+   "at": "quarante",
+   "n": "40",
+   "unit": " plaies",
+   "sub": "et un bras en moins",
+   "icon": "bandage"
+  },
+  {
+   "type": "world",
+   "line": "l07",
+   "preset": "graze",
+   "night": 0.55
+  },
+  {
+   "type": "tag",
+   "line": "l07",
+   "at": "viande",
+   "text": "il ne mange pas de viande",
+   "kind": "green"
+  },
+  {
+   "type": "tag",
+   "line": "l07",
+   "at": "brouter",
+   "text": "100 % herbivore",
+   "kind": "green"
+  },
+  {
+   "type": "title",
+   "line": "l08",
+   "at": "Alors",
+   "text": "Pourquoi un herbivore est l'un des animaux les plus dangereux d'Afrique",
+   "sub": "5 questions"
+  },
+  {
+   "type": "toc",
+   "line": "l09",
+   "at": "Combien",
+   "items": [
+    {
+     "at": "Combien"
+    },
+    {
+     "at": "armes"
+    },
+    {
+     "at": "Pourquoi"
+    },
+    {
+     "at": "cache"
+    },
+    {
+     "at": "Escobar"
+    }
+   ]
+  },
+  {
+   "type": "chapter",
+   "line": "l10",
+   "at": "Question",
+   "n": 1
+  },
+  {
+   "type": "world",
+   "line": "l11",
+   "preset": "herd",
+   "spot": "herd"
+  },
+  {
+   "type": "bignum",
+   "line": "l11",
+   "at": "cinq",
+   "n": "500",
+   "unit": " morts / an",
+   "sub": "le chiffre qu'on lit partout",
+   "icon": "skull"
+  },
+  {
+   "type": "tag",
+   "line": "l12",
+   "at": "personne",
+   "text": "personne ne les a comptés",
+   "kind": "orange"
+  },
+  {
+   "type": "bignum",
+   "line": "l12",
+   "at": "fourchette",
+   "n": "500 à 3 000",
+   "unit": "",
+   "sub": "une simple estimation d'encyclopédie"
+  },
+  {
+   "type": "icons",
+   "line": "l13",
+   "at": "Des",
+   "title": "Pourquoi on ne sait pas",
+   "items": [
+    {
+     "icon": "hospital",
+     "label": "aucune donnée médicale",
+     "at": "solide",
+     "no": true
+    },
+    {
+     "icon": "globe",
+     "label": "villages isolés",
+     "at": "isolés"
+    },
+    {
+     "icon": "phone",
+     "label": "jamais déclarées",
+     "at": "déclarées",
+     "no": true
+    }
+   ]
+  },
+  {
+   "type": "broll",
+   "line": "l14",
+   "at": "pêcheurs",
+   "asset": "pirogue"
+  },
+  {
+   "type": "tag",
+   "line": "l14",
+   "at": "habitants",
+   "text": "pêcheurs et habitants des berges"
+  },
+  {
+   "type": "map",
+   "line": "l14b",
+   "at": "On",
+   "focus": [
+    20,
+    -3
+   ],
+   "zoom0": 0.5,
+   "zoom": 1.7,
+   "highlight": [
+    "SEN",
+    "GMB",
+    "GNB",
+    "GIN",
+    "SLE",
+    "LBR",
+    "CIV",
+    "GHA",
+    "TGO",
+    "BEN",
+    "NGA",
+    "NER",
+    "MLI",
+    "BFA",
+    "TCD",
+    "CMR",
+    "CAF",
+    "SSD",
+    "ETH",
+    "KEN",
+    "UGA",
+    "RWA",
+    "BDI",
+    "TZA",
+    "COD",
+    "COG",
+    "GAB",
+    "GNQ",
+    "AGO",
+    "ZMB",
+    "MWI",
+    "MOZ",
+    "ZWE",
+    "BWA",
+    "NAM",
+    "ZAF",
+    "SWZ"
+   ]
+  },
+  {
+   "type": "tag",
+   "line": "l14b",
+   "at": "subsaharienne",
+   "text": "aire de répartition (approx.)"
+  },
+  {
+   "type": "bars",
+   "line": "l15",
+   "at": "Ce",
+   "untilLine": "l16",
+   "title": "Morts par an (estimations)",
+   "log": true,
+   "items": [
+    {
+     "label": "moustique",
+     "icon": "mosquito",
+     "value": 597000,
+     "display": "≈ 600 000",
+     "line": "l16",
+     "at": "moustique"
+    },
+    {
+     "label": "serpents",
+     "icon": "snake",
+     "value": 110000,
+     "display": "81 000 – 138 000",
+     "line": "l16",
+     "at": "serpents"
+    },
+    {
+     "label": "hippopotame",
+     "icon": "hippo",
+     "value": 500,
+     "display": "des centaines ?",
+     "at": "centaines",
+     "hi": true
+    },
+    {
+     "label": "requins",
+     "icon": "fin",
+     "value": 10,
+     "display": "≈ 10",
+     "at": "requins"
+    }
+   ]
+  },
+  {
+   "type": "world",
+   "line": "l17",
+   "preset": "herd",
+   "spot": "river"
+  },
+  {
+   "type": "broll",
+   "line": "l17",
+   "at": "Mais",
+   "asset": "berge"
+  },
+  {
+   "type": "tag",
+   "line": "l17",
+   "at": "peur",
+   "text": "parmi les grands animaux sauvages"
+  },
+  {
+   "type": "chapter",
+   "line": "l18",
+   "at": "Question",
+   "n": 2
+  },
+  {
+   "type": "compare",
+   "line": "l19",
+   "at": "Un",
+   "items": [
+    {
+     "who": "human",
+     "label": "vous",
+     "at": "Un"
+    },
+    {
+     "who": "hippo",
+     "label": "hippopotame",
+     "value": "≈ 1,5 t",
+     "at": "tonne"
+    },
+    {
+     "who": "car",
+     "label": "voiture",
+     "value": "≈ 1,5 t",
+     "at": "voitures"
+    },
+    {
+     "who": "car",
+     "label": "voiture",
+     "value": "≈ 1,5 t",
+     "at": "voitures",
+     "col": "#c45d3d"
+    }
+   ]
+  },
+  {
+   "type": "tag",
+   "line": "l19",
+   "at": "trois",
+   "text": "gros mâles : plus de 3 tonnes",
+   "kind": "orange"
+  },
+  {
+   "type": "broll",
+   "line": "l19b",
+   "at": "Et",
+   "asset": "profil"
+  },
+  {
+   "type": "tag",
+   "line": "l19b",
+   "at": "muscles",
+   "text": "peut renverser un bateau"
+  },
+  {
+   "type": "anatomy",
+   "line": "l20",
+   "at": "Sa",
+   "untilLine": "l21",
+   "species": "hippo",
+   "gape": 150,
+   "gapeAt": "s'ouvre",
+   "labels": [
+    {
+     "part": "lips",
+     "text": "gueule ouverte à ≈ 150°",
+     "at": "cent",
+     "side": "left"
+    },
+    {
+     "part": "canine",
+     "text": "canines : plus de 50 cm",
+     "at": "canines",
+     "side": "right",
+     "kind": "orange"
+    },
+    {
+     "part": "canine",
+     "text": "elles poussent toute sa vie",
+     "line": "l21",
+     "at": "poussent",
+     "side": "right"
+    }
+   ]
+  },
+  {
+   "type": "tag",
+   "line": "l20b",
+   "at": "avant-bras",
+   "text": "≈ la longueur d'un avant-bras"
+  },
+  {
+   "type": "broll",
+   "line": "l22",
+   "at": "L'herbe",
+   "asset": "levres"
+  },
+  {
+   "type": "tag",
+   "line": "l22",
+   "at": "lèvres",
+   "text": "il arrache l'herbe avec ses lèvres"
+  },
+  {
+   "type": "world",
+   "line": "l22b",
+   "preset": "herd",
+   "spot": "herd"
+  },
+  {
+   "type": "tag",
+   "line": "l22b",
+   "at": "combats",
+   "text": "combats pour un territoire"
+  },
+  {
+   "type": "tag",
+   "line": "l22b",
+   "at": "mort",
+   "text": "parfois mortels",
+   "kind": "orange",
+   "untilLine": "l23"
+  },
+  {
+   "type": "bignum",
+   "line": "l23",
+   "at": "huit",
+   "n": "≈ 8 100",
+   "unit": " N",
+   "sub": "une seule mesure, sur une femelle"
+  },
+  {
+   "type": "world",
+   "line": "l24",
+   "preset": "charge",
+   "events": [
+    {
+     "do": "go",
+     "at": "charger"
+    }
+   ]
+  },
+  {
+   "type": "tag",
+   "line": "l24",
+   "at": "trentaine",
+   "text": "≈ 30 km/h",
+   "kind": "orange"
+  },
+  {
+   "type": "tag",
+   "line": "l24",
+   "at": "centaines",
+   "text": "sur quelques centaines de mètres"
+  },
+  {
+   "type": "icons",
+   "line": "l24b",
+   "at": "Résultat",
+   "title": "Presque aucun ennemi naturel",
+   "items": [
+    {
+     "icon": "lion",
+     "label": "lions",
+     "at": "lions"
+    },
+    {
+     "icon": "crocodile",
+     "label": "crocodiles",
+     "at": "crocodiles"
+    },
+    {
+     "icon": "baby",
+     "label": "surtout les petits",
+     "at": "petits"
+    }
+   ]
+  },
+  {
+   "type": "world",
+   "line": "l25",
+   "preset": "herd",
+   "spot": "river"
+  },
+  {
+   "type": "cta",
+   "line": "l25",
+   "at": "Si",
+   "like": "like",
+   "sub": "abonnez-vous"
+  },
+  {
+   "type": "chapter",
+   "line": "l26",
+   "at": "Question",
+   "n": 3
+  },
+  {
+   "type": "quote",
+   "line": "l27",
+   "at": "Il",
+   "text": "Il n'attaque pas pour manger. Il défend quelque chose."
+  },
+  {
+   "type": "broll",
+   "line": "l28",
+   "at": "Dans",
+   "asset": "groupe"
+  },
+  {
+   "type": "tag",
+   "line": "l28",
+   "at": "portion",
+   "text": "chaque mâle défend sa rivière"
+  },
+  {
+   "type": "world",
+   "line": "l28b",
+   "preset": "herd",
+   "spot": "herd"
+  },
+  {
+   "type": "tag",
+   "line": "l28b",
+   "at": "marque",
+   "text": "il marque son territoire"
+  },
+  {
+   "type": "world",
+   "line": "l29",
+   "preset": "calf"
+  },
+  {
+   "type": "tag",
+   "line": "l29",
+   "at": "entre",
+   "text": "jamais entre une mère et son petit",
+   "kind": "orange"
+  },
+  {
+   "type": "broll",
+   "line": "l29b",
+   "at": "La",
+   "asset": "mere"
+  },
+  {
+   "type": "tag",
+   "line": "l29b",
+   "at": "dizaine",
+   "text": "≈ 10 jours à l'écart du groupe"
+  },
+  {
+   "type": "broll",
+   "line": "l30",
+   "at": "coucher",
+   "asset": "couchant"
+  },
+  {
+   "type": "broll",
+   "line": "l30",
+   "at": "marchent",
+   "asset": "sentier"
+  },
+  {
+   "type": "bignum",
+   "line": "l30",
+   "at": "quarantaine",
+   "n": "≈ 40",
+   "unit": " kg",
+   "sub": "d'herbe en une nuit",
+   "icon": "grass"
+  },
+  {
+   "type": "world",
+   "line": "l31",
+   "preset": "night",
+   "night": 1,
+   "events": [
+    {
+     "do": "return",
+     "at": "rentrent"
+    },
+    {
+     "do": "man",
+     "at": "Si"
+    },
+    {
+     "do": "gape",
+     "line": "l31b",
+     "at": "nez"
+    }
+   ]
+  },
+  {
+   "type": "tag",
+   "line": "l31",
+   "at": "obstacle",
+   "text": "un obstacle",
+   "kind": "orange"
+  },
+  {
+   "type": "tag",
+   "line": "l31b",
+   "at": "l'aube",
+   "text": "à l'aube ou au crépuscule"
+  },
+  {
+   "type": "world",
+   "line": "l32",
+   "preset": "gape",
+   "events": [
+    {
+     "do": "open",
+     "at": "ouvre"
+    }
+   ]
+  },
+  {
+   "type": "tag",
+   "line": "l32",
+   "at": "bâillement",
+   "text": "ce n'est pas un bâillement",
+   "kind": "orange"
+  },
+  {
+   "type": "broll",
+   "line": "l32",
+   "at": "menace",
+   "asset": "gueule"
+  },
+  {
+   "type": "world",
+   "line": "l33",
+   "preset": "charge",
+   "events": [
+    {
+     "do": "go",
+     "at": "charger"
+    }
+   ]
+  },
+  {
+   "type": "tag",
+   "line": "l33",
+   "at": "tête",
+   "text": "tête basse, en soufflant"
+  },
+  {
+   "type": "tag",
+   "line": "l33",
+   "at": "surgir",
+   "text": "dans l'eau : il surgit d'en dessous",
+   "kind": "orange",
+   "untilLine": "l34"
+  },
+  {
+   "type": "chapter",
+   "line": "l34",
+   "at": "Question",
+   "n": 4
+  },
+  {
+   "type": "world",
+   "line": "l35",
+   "preset": "under",
+   "events": [
+    {
+     "do": "breathe",
+     "at": "rebondir"
+    }
+   ]
+  },
+  {
+   "type": "tag",
+   "line": "l35",
+   "at": "nager",
+   "text": "il ne sait pas vraiment nager",
+   "kind": "orange"
+  },
+  {
+   "type": "tag",
+   "line": "l35",
+   "at": "marche",
+   "text": "il marche au fond"
+  },
+  {
+   "type": "bignum",
+   "line": "l36",
+   "at": "Il",
+   "n": "≈ 5",
+   "unit": " min",
+   "sub": "sans respirer",
+   "icon": "lungs"
+  },
+  {
+   "type": "broll",
+   "line": "l36",
+   "at": "dort",
+   "asset": "fond"
+  },
+  {
+   "type": "world",
+   "line": "l36b",
+   "preset": "sleep",
+   "events": [
+    {
+     "do": "breathe",
+     "at": "remonte"
+    }
+   ]
+  },
+  {
+   "type": "tag",
+   "line": "l36b",
+   "at": "baleine",
+   "text": "comme une baleine",
+   "kind": "yellow"
+  },
+  {
+   "type": "world",
+   "line": "l37",
+   "preset": "nurse"
+  },
+  {
+   "type": "tag",
+   "line": "l37",
+   "at": "tètent",
+   "text": "ils tètent sous l'eau"
+  },
+  {
+   "type": "world",
+   "line": "l37b",
+   "preset": "herd",
+   "spot": "herd"
+  },
+  {
+   "type": "tag",
+   "line": "l37b",
+   "at": "l'air",
+   "text": "des cris dans l'air ET sous l'eau"
+  },
+  {
+   "type": "world",
+   "line": "l38",
+   "preset": "sweat",
+   "events": [
+    {
+     "do": "sweat",
+     "at": "rouge"
+    }
+   ]
+  },
+  {
+   "type": "tag",
+   "line": "l38",
+   "at": "rouge",
+   "text": "une sueur rouge",
+   "kind": "orange"
+  },
+  {
+   "type": "icons",
+   "line": "l39",
+   "at": "En",
+   "title": "Ni sang, ni sueur : deux pigments",
+   "items": [
+    {
+     "icon": "sun",
+     "label": "filtre le soleil",
+     "at": "soleil"
+    },
+    {
+     "icon": "bacteria",
+     "label": "freine des bactéries",
+     "at": "bactéries"
+    }
+   ]
+  },
+  {
+   "type": "tag",
+   "line": "l39",
+   "at": "chimistes",
+   "text": "Saikawa et al., Nature, 2004"
+  },
+  {
+   "type": "tag",
+   "line": "l40",
+   "at": "crème",
+   "text": "sa propre crème solaire",
+   "kind": "yellow"
+  },
+  {
+   "type": "tag",
+   "line": "l40b",
+   "at": "instables",
+   "text": "pigments trop instables",
+   "untilLine": "l41"
+  },
+  {
+   "type": "icons",
+   "line": "l41",
+   "at": "Troisième",
+   "title": "Ses plus proches cousins vivants",
+   "items": [
+    {
+     "icon": "pig",
+     "label": "les cochons",
+     "at": "cochons",
+     "no": true
+    },
+    {
+     "icon": "elephant",
+     "label": "les éléphants",
+     "at": "éléphants",
+     "no": true
+    },
+    {
+     "icon": "whale",
+     "label": "baleines et dauphins",
+     "at": "baleines",
+     "ok": true
+    }
+   ]
+  },
+  {
+   "type": "tag",
+   "line": "l41",
+   "at": "cinquante-cinq",
+   "text": "ancêtre commun : 55 millions d'années"
+  },
+  {
+   "type": "chapter",
+   "line": "l42",
+   "at": "Question",
+   "n": 5
+  },
+  {
+   "type": "world",
+   "line": "l42",
+   "preset": "herd",
+   "spot": "river"
+  },
+  {
+   "type": "map",
+   "line": "l43",
+   "at": "Dans",
+   "untilLine": "l43b",
+   "focus": "COL",
+   "zoom0": 0.6,
+   "zoom": 3.2,
+   "highlight": [
+    "COL"
+   ],
+   "pins": [
+    {
+     "lonlat": [
+      -74.8,
+      5.9
+     ],
+     "label": "Hacienda Nápoles",
+     "at": "Nápoles"
+    }
+   ]
+  },
+  {
+   "type": "tag",
+   "line": "l43",
+   "at": "mâle",
+   "text": "1 mâle + 3 femelles"
+  },
+  {
+   "type": "tag",
+   "line": "l43b",
+   "at": "girafes",
+   "text": "girafes, zèbres, éléphants…"
+  },
+  {
+   "type": "timeline",
+   "line": "l44",
+   "at": "En",
+   "untilLine": "l46",
+   "items": [
+    {
+     "year": "années 80",
+     "text": "4 hippopotames importés",
+     "at": "En"
+    },
+    {
+     "year": "1993",
+     "text": "Escobar est tué, les hippos restent",
+     "at": "tué"
+    },
+    {
+     "year": "2023",
+     "text": "169 recensés",
+     "line": "l46",
+     "at": "compte"
+    },
+    {
+     "year": "2050 ?",
+     "text": "plus de 1 000 selon une étude",
+     "line": "l46",
+     "at": "mille"
+    }
+   ]
+  },
+  {
+   "type": "tag",
+   "line": "l45",
+   "at": "Magdalena",
+   "text": "le fleuve Magdalena"
+  },
+  {
+   "type": "broll",
+   "line": "l46b",
+   "at": "C'est",
+   "asset": "marche"
+  },
+  {
+   "type": "tag",
+   "line": "l46b",
+   "at": "dehors",
+   "text": "le plus grand groupe hors d'Afrique"
+  },
+  {
+   "type": "icons",
+   "line": "l47",
+   "at": "Ils",
+   "title": "Un vrai problème",
+   "items": [
+    {
+     "icon": "water",
+     "label": "rivières transformées",
+     "at": "rivières"
+    },
+    {
+     "icon": "canoe",
+     "label": "pêcheurs inquiets",
+     "at": "pêcheurs"
+    },
+    {
+     "icon": "syringe",
+     "label": "stérilisations",
+     "at": "stériliser"
+    }
+   ]
+  },
+  {
+   "type": "tag",
+   "line": "l47b",
+   "at": "débat",
+   "text": "un débat loin d'être tranché"
+  },
+  {
+   "type": "quote",
+   "line": "l48",
+   "at": "Quatre",
+   "text": "Quatre animaux, rapportés pour un caprice."
+  },
+  {
+   "type": "icons",
+   "line": "l49",
+   "at": "Alors",
+   "title": "Si vous croisez un hippopotame",
+   "items": [
+    {
+     "icon": "ruler",
+     "label": "gardez vos distances",
+     "at": "distances"
+    },
+    {
+     "icon": "water",
+     "label": "jamais entre lui et l'eau",
+     "at": "jamais"
+    }
+   ]
+  },
+  {
+   "type": "world",
+   "line": "l49b",
+   "preset": "herd",
+   "spot": "bank"
+  },
+  {
+   "type": "tag",
+   "line": "l49b",
+   "at": "obstacle",
+   "text": "un gros obstacle entre vous et lui"
+  },
+  {
+   "type": "world",
+   "line": "l50",
+   "preset": "gape",
+   "events": [
+    {
+     "do": "open",
+     "at": "gueule"
+    }
+   ]
+  },
+  {
+   "type": "tag",
+   "line": "l50",
+   "at": "remarquer",
+   "text": "faites-vous remarquer de loin"
+  },
+  {
+   "type": "tag",
+   "line": "l50",
+   "at": "Reculez",
+   "text": "reculez",
+   "kind": "orange",
+   "untilLine": "l50b",
+   "until": "ironique"
+  },
+  {
+   "type": "world",
+   "line": "l50b",
+   "preset": "herd",
+   "spot": "herd"
+  },
+  {
+   "type": "tag",
+   "line": "l50b",
+   "at": "vulnérable",
+   "text": "espèce vulnérable (UICN)",
+   "kind": "orange"
+  },
+  {
+   "type": "world",
+   "line": "l51",
+   "preset": "canoe",
+   "solo": true,
+   "events": [
+    {
+     "do": "surface",
+     "at": "refait"
+    }
+   ]
+  },
+  {
+   "type": "tag",
+   "line": "l51",
+   "at": "deux",
+   "text": "deux ans plus tard"
+  },
+  {
+   "type": "outro",
+   "line": "l52",
+   "at": "Et",
+   "text": "Et vous, vous remonteriez dans le canoë ?"
+  }
+ ]
+}

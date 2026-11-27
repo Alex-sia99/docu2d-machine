@@ -1,0 +1,90 @@
+{
+  "id": "docu2d",
+  "name": "Docu Papier 2D",
+  "files": [
+    "agent-os/lib/machines/docu2d.js",
+    "agent-os/lib/docu2d/voice.js",
+    "agent-os/lib/docu2d/mix.js",
+    "agent-os/lib/docu2d/stage.js",
+    "agent-os/lib/opensources.js",
+    "agent-os/lib/pixabay.js",
+    "agent-os/scripts/suno-gen.js",
+    "agent-os/scripts/pexels-scout.js",
+    "agent-os/public/js/pages/docu2d.js",
+    "agent-os/scripts/elevenlabs.js",
+    "remotion/src/Docu2D/beats.tsx",
+    "remotion/src/Docu2D/bestiary.tsx",
+    "remotion/src/Docu2D/icons.tsx",
+    "remotion/src/Docu2D/icons2.tsx",
+    "remotion/src/Docu2D/index.tsx",
+    "remotion/src/Docu2D/paper.tsx",
+    "remotion/src/Docu2D/Sheet.tsx",
+    "remotion/src/Docu2D/Thumb.tsx",
+    "remotion/src/Docu2D/timing.ts",
+    "remotion/src/Docu2D/world.tsx",
+    "remotion/src/Docu2D/worldmap.json",
+    "remotion/src/cast2d/cast.ts",
+    "remotion/src/cast2d/people.tsx",
+    "remotion/src/cast2d/rig.ts",
+    "remotion/src/cast2d/Sheet.tsx",
+    "remotion/src/cast2d/things.tsx",
+    "remotion/src/cast2d/walk.ts",
+    "remotion/src/docu2d.tsx",
+    "remotion/scripts/d2-check.ts",
+    "remotion/scripts/d2-stills.mjs",
+    "remotion/public-d2/paper.png",
+    "agent-os/output/machines/d2-hippo/script.json",
+    "agent-os/output/machines/d2-hippo/storyboard.json",
+    "agent-os/docs/FEUILLE-DE-ROUTE-MACHINE-DOCU2D.md",
+    "agent-os/docs/RECETTE-NICHE-ANIMAUX.md",
+    "agent-os/docs/CHECKLIST-NICHE-ANIMAUX.md",
+    "agent-os/docs/DISSECTION-DEPTH-THEORY.md",
+    "agent-os/docs/DISSECTION-OCEANVERSE.md",
+    "agent-os/docs/CAST2D.md",
+    ".claude/skills/cast2d/SKILL.md",
+    ".claude/skills/character-physics/references/erreurs.md",
+    ".claude/skills/character-physics/SKILL.md",
+    ".claude/skills/ffmpeg-usage/examples/conversion.sh",
+    ".claude/skills/ffmpeg-usage/LICENSE",
+    ".claude/skills/ffmpeg-usage/README.md",
+    ".claude/skills/ffmpeg-usage/SKILL.md",
+    ".claude/skills/machine-factory/SKILL.md",
+    ".claude/skills/machine-factory/references/machines-log.md",
+    "agent-os/lib/machines/docu2d-niche.json"
+  ],
+  "ifMissing": [
+    "agent-os/lib/llm.js",
+    "agent-os/lib/pexels.js"
+  ],
+  "requires": [
+    "agent-os/lib/{store,vault,spend,tasks,claude,google}.js (socle)",
+    "remotion 4 + @remotion/google-fonts (même version) + tsx (vérificateur)",
+    "ffmpeg + ffprobe dans le PATH",
+    "python + faster-whisper (contrôle d'écoute)"
+  ],
+  "keys": {
+    "obligatoire": [
+      "pixabay ou pexels",
+      "elevenlabs",
+      "openrouter (repli Claude CLI)"
+    ],
+    "conseille": [
+      "kie (musique Suno, images IA de secours)"
+    ]
+  },
+  "serverSnippet": {
+    "file": "agent-os/server.js",
+    "start": "// ===== MACHINE DOCU PAPIER 2D =====",
+    "end": "// ===== FIN MACHINE DOCU PAPIER 2D ====="
+  },
+  "pipeline": [
+    "facts",
+    "script",
+    "voice",
+    "storyboard",
+    "broll",
+    "render",
+    "mix",
+    "package"
+  ]
+}

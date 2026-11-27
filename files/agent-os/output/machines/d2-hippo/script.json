@@ -1,0 +1,533 @@
+{
+  "title": "Pourquoi un herbivore est l'un des animaux les plus dangereux d'Afrique",
+  "subject": "l'hippopotame",
+  "family": "terrestre",
+  "lang": "fr",
+  "voice": {
+    "id": "alex",
+    "label": "Voix de l'exemple (sans importance : seul le texte sert de modèle)",
+    "model": "eleven_v4",
+    "stability": 0.45,
+    "similarity": 0.85
+  },
+  "chapters": [
+    {
+      "title": "Combien de morts ?",
+      "icon": "skull"
+    },
+    {
+      "title": "Avec quoi ?",
+      "icon": "tooth"
+    },
+    {
+      "title": "Pourquoi attaque-t-il ?",
+      "icon": "shield"
+    },
+    {
+      "title": "Ce qu'il cache",
+      "icon": "eye"
+    },
+    {
+      "title": "Les hippos d'Escobar",
+      "icon": "globe"
+    }
+  ],
+  "lines": [
+    {
+      "id": "l01",
+      "scene": "hook",
+      "pause": 1,
+      "text": "Vous glissez en canoë sur le Zambèze, juste au-dessus des chutes Victoria. L'eau est lisse, le soleil tape, et le seul bruit, c'est celui de votre pagaie."
+    },
+    {
+      "id": "l02",
+      "scene": "hook",
+      "pause": 0.7,
+      "text": "Devant vous, une bosse grise affleure à la surface. Un rocher, pensez-vous. Puis le rocher souffle."
+    },
+    {
+      "id": "l03",
+      "scene": "hook",
+      "pause": 0.9,
+      "text": "Le 9 mars 1996, c'est ce que vit Paul Templer, un guide de rivière de vingt-sept ans, qui emmène des touristes sur ce fleuve depuis des années."
+    },
+    {
+      "id": "l04",
+      "scene": "hook",
+      "pause": 0.6,
+      "text": "Ce jour-là, un hippopotame surgit sous le canoë de son apprenti, Evans, et le projette à l'eau. Paul pagaie vers lui pour le sortir de là."
+    },
+    {
+      "id": "l05",
+      "scene": "hook",
+      "pause": 0.6,
+      "text": "Il n'arrivera jamais jusqu'à Evans. L'animal remonte sous lui, et en une seconde, tout devient noir. Paul comprendra plus tard qu'il se trouvait jusqu'à la taille dans la gueule de l'hippopotame."
+    },
+    {
+      "id": "l05b",
+      "scene": "hook",
+      "pause": 0.6,
+      "text": "L'hippopotame le relâche, puis revient à la charge. Trois fois. Ses collègues finissent par le sortir de l'eau, à moitié mort."
+    },
+    {
+      "id": "l06",
+      "scene": "hook",
+      "pause": 0.9,
+      "text": "Il va survivre, avec plus de quarante plaies et un bras en moins. Evans, lui, s'est noyé."
+    },
+    {
+      "id": "l07",
+      "scene": "hook",
+      "pause": 0.9,
+      "text": "Et voici le plus troublant : l'animal qui a fait ça ne mange pas de viande. Il passe ses nuits à brouter de l'herbe."
+    },
+    {
+      "id": "l08",
+      "scene": "promise",
+      "pause": 1,
+      "text": "Alors comment un herbivore peut-il être l'un des animaux les plus dangereux d'Afrique ? Pour le comprendre, il faut répondre à cinq questions."
+    },
+    {
+      "id": "l09",
+      "scene": "promise",
+      "pause": 0.6,
+      "text": "Combien de personnes tue-t-il vraiment ? Avec quelles armes ? Pourquoi attaque-t-il ? Qu'est-ce qu'il cache ? Et que font les hippopotames de Pablo Escobar au milieu de la Colombie ?"
+    },
+    {
+      "id": "l10",
+      "scene": "q1",
+      "pause": 1.2,
+      "text": "Question numéro un : combien de morts ?"
+    },
+    {
+      "id": "l11",
+      "scene": "q1",
+      "pause": 0.7,
+      "text": "Vous avez sûrement déjà lu ce chiffre : cinq cents personnes tuées chaque année par les hippopotames. On le retrouve partout, dans les articles, les documentaires et les classements des animaux les plus dangereux."
+    },
+    {
+      "id": "l12",
+      "scene": "q1",
+      "pause": 0.7,
+      "text": "Le problème, c'est que personne ne les a vraiment comptés. Ce chiffre vient d'une estimation d'encyclopédie, qui donne en réalité une fourchette de cinq cents à trois mille morts par an."
+    },
+    {
+      "id": "l13",
+      "scene": "q1",
+      "pause": 0.7,
+      "text": "Des chercheurs ont fouillé la littérature médicale pour le vérifier. Ils n'y ont trouvé aucune donnée solide. Beaucoup d'attaques ont lieu dans des villages isolés, loin de tout hôpital, et ne sont jamais déclarées."
+    },
+    {
+      "id": "l14",
+      "scene": "q1",
+      "pause": 0.7,
+      "text": "Les victimes sont surtout des pêcheurs en pirogue et des habitants des berges, qui vivent avec ces animaux juste à côté de chez eux."
+    },
+    {
+      "id": "l14b",
+      "scene": "q1",
+      "pause": 0.7,
+      "text": "On trouve l'hippopotame dans une grande partie de l'Afrique subsaharienne, partout où il y a des fleuves, des lacs et des marais, souvent tout près des villages."
+    },
+    {
+      "id": "l15",
+      "scene": "q1",
+      "pause": 0.7,
+      "text": "Ce qu'on peut dire, c'est que l'hippopotame tue des centaines de personnes chaque année. À côté, les requins en tuent une dizaine, dans le monde entier."
+    },
+    {
+      "id": "l16",
+      "scene": "q1",
+      "pause": 0.7,
+      "text": "Il reste quand même très loin derrière les serpents, qui font entre quatre-vingt mille et cent quarante mille morts par an. Et derrière le vrai tueur numéro un : le moustique, avec près de six cent mille morts du paludisme."
+    },
+    {
+      "id": "l17",
+      "scene": "q1",
+      "pause": 0.7,
+      "text": "Mais parmi les grands animaux sauvages, peu inspirent autant de peur aux gens qui vivent au bord des fleuves africains. Pour comprendre pourquoi, il faut regarder ce corps de plus près."
+    },
+    {
+      "id": "l18",
+      "scene": "q2",
+      "pause": 1.2,
+      "text": "Question numéro deux : avec quelles armes ?"
+    },
+    {
+      "id": "l19",
+      "scene": "q2",
+      "pause": 0.7,
+      "text": "Un hippopotame adulte pèse en moyenne une tonne et demie. Les plus gros mâles dépassent trois tonnes. C'est le poids de deux voitures, posé sur des pattes très courtes."
+    },
+    {
+      "id": "l19b",
+      "scene": "q2",
+      "pause": 0.7,
+      "text": "Et ce poids n'est pas que de la graisse. Sous une peau très épaisse se cache une masse de muscles capable de renverser un bateau."
+    },
+    {
+      "id": "l20",
+      "scene": "q2",
+      "pause": 0.7,
+      "text": "Sa gueule s'ouvre à près de cent cinquante degrés, presque à plat. Et ce qu'elle dévoile, ce sont des canines qui peuvent dépasser cinquante centimètres."
+    },
+    {
+      "id": "l20b",
+      "scene": "q2",
+      "pause": 0.7,
+      "text": "Pour vous donner une idée, une canine de cinquante centimètres, c'est à peu près la longueur d'un avant-bras, du coude jusqu'au bout des doigts."
+    },
+    {
+      "id": "l21",
+      "scene": "q2",
+      "pause": 0.7,
+      "text": "Ces canines poussent pendant toute sa vie, et s'aiguisent en frottant les unes contre les autres."
+    },
+    {
+      "id": "l22",
+      "scene": "q2",
+      "pause": 0.7,
+      "text": "Elles ne lui servent pas à manger. L'herbe, il l'arrache avec ses lèvres, larges et dures. Ces dents-là sont des armes, faites pour se battre."
+    },
+    {
+      "id": "l22b",
+      "scene": "q2",
+      "pause": 0.7,
+      "text": "Entre mâles, ces armes servent vraiment. Les combats pour un territoire peuvent durer longtemps, laisser de profondes cicatrices, et parfois finir par la mort de l'un des deux."
+    },
+    {
+      "id": "l23",
+      "scene": "q2",
+      "pause": 0.7,
+      "text": "Sa morsure n'a presque jamais été mesurée. La seule mesure connue, faite sur une femelle, a donné environ huit mille newtons. Les mâles, plus gros, n'ont jamais laissé personne essayer."
+    },
+    {
+      "id": "l24",
+      "scene": "q2",
+      "pause": 0.7,
+      "text": "Et il est rapide. Sur terre, cette masse peut charger à une trentaine de kilomètres-heure, sur quelques centaines de mètres. C'est plus vite que la plupart des gens ne pourront jamais courir."
+    },
+    {
+      "id": "l24b",
+      "scene": "q2",
+      "pause": 0.7,
+      "text": "Résultat : un adulte n'a presque aucun ennemi naturel. Les lions, les hyènes et les crocodiles s'en prennent parfois aux petits, mais très rarement aux adultes."
+    },
+    {
+      "id": "l25",
+      "scene": "cta",
+      "pause": 1,
+      "text": "Si vous apprenez quelque chose, un like aide énormément la chaîne. Et abonnez-vous, parce que la suite est encore plus étrange."
+    },
+    {
+      "id": "l26",
+      "scene": "q3",
+      "pause": 1.2,
+      "text": "Question numéro trois : pourquoi attaque-t-il ?"
+    },
+    {
+      "id": "l27",
+      "scene": "q3",
+      "pause": 0.7,
+      "text": "L'hippopotame n'est pas un prédateur. Il ne vous chasse pas pour vous manger. Il attaque parce qu'il défend quelque chose."
+    },
+    {
+      "id": "l28",
+      "scene": "q3",
+      "pause": 0.7,
+      "text": "Dans l'eau, les mâles dominants défendent chacun leur portion de rivière, avec leur groupe de femelles. Un canoë qui passe au-dessus, c'est un intrus sur son territoire."
+    },
+    {
+      "id": "l28b",
+      "scene": "q3",
+      "pause": 0.7,
+      "text": "Ce territoire, le mâle le marque d'une façon très particulière : il éparpille ses excréments en faisant tourner sa queue comme un ventilateur."
+    },
+    {
+      "id": "l29",
+      "scene": "q3",
+      "pause": 0.7,
+      "text": "Les femelles, elles, défendent leurs petits. Se retrouver entre une mère et son petit, c'est l'une des pires positions possibles."
+    },
+    {
+      "id": "l29b",
+      "scene": "q3",
+      "pause": 0.7,
+      "text": "La femelle quitte même le groupe pour mettre bas, et ne revient qu'une dizaine de jours plus tard, avec son petit collé contre elle."
+    },
+    {
+      "id": "l30",
+      "scene": "q3",
+      "pause": 0.7,
+      "text": "Et puis il y a le piège de la nuit. Au coucher du soleil, les hippopotames sortent de l'eau pour aller brouter. Ils marchent parfois plusieurs kilomètres, et avalent une quarantaine de kilos d'herbe en une nuit."
+    },
+    {
+      "id": "l31",
+      "scene": "q3",
+      "pause": 0.7,
+      "text": "Avant l'aube, ils rentrent tous vers l'eau, par les mêmes sentiers. Si vous vous trouvez entre un hippopotame et sa rivière, vous êtes un obstacle. Et un obstacle, il le renverse."
+    },
+    {
+      "id": "l31b",
+      "scene": "q3",
+      "pause": 0.7,
+      "text": "Beaucoup d'accidents arrivent ainsi, à l'aube ou au crépuscule, au bord de l'eau, quand quelqu'un tombe nez à nez avec un animal qui rentre chez lui."
+    },
+    {
+      "id": "l32",
+      "scene": "q3",
+      "pause": 0.7,
+      "text": "Souvent, il prévient. Il ouvre la gueule en grand. On dirait un bâillement, mais ce n'en est pas un : c'est une menace. Il vous montre ses armes."
+    },
+    {
+      "id": "l33",
+      "scene": "q3",
+      "pause": 0.7,
+      "text": "Ensuite, il peut charger, tête basse, en soufflant. Et dans l'eau, il ne prévient pas toujours : comme pour Paul, il peut surgir d'en dessous."
+    },
+    {
+      "id": "l34",
+      "scene": "q4",
+      "pause": 1.2,
+      "text": "Question numéro quatre : qu'est-ce qu'il cache ?"
+    },
+    {
+      "id": "l35",
+      "scene": "q4",
+      "pause": 0.7,
+      "text": "Premier secret : l'hippopotame passe ses journées dans l'eau, mais il ne sait pas vraiment nager. Il est trop dense pour flotter. Il marche au fond, et pousse sur ses pattes pour rebondir jusqu'à la surface."
+    },
+    {
+      "id": "l36",
+      "scene": "q4",
+      "pause": 0.7,
+      "text": "Il peut retenir sa respiration environ cinq minutes. Il dort même sous l'eau : son corps le fait remonter respirer sans qu'il se réveille."
+    },
+    {
+      "id": "l36b",
+      "scene": "q4",
+      "pause": 0.7,
+      "text": "Quand il remonte, il souffle un jet d'air et d'eau, un peu comme une baleine. Ce n'est pas un hasard, et vous allez comprendre pourquoi."
+    },
+    {
+      "id": "l37",
+      "scene": "q4",
+      "pause": 0.7,
+      "text": "Ses petits naissent souvent dans l'eau, et tètent même sous l'eau, oreilles et narines fermées."
+    },
+    {
+      "id": "l37b",
+      "scene": "q4",
+      "pause": 0.7,
+      "text": "Et on les entend de loin : leurs grognements portent loin sur la rivière, et certains de leurs cris passent à la fois dans l'air et sous l'eau, pour prévenir tout le groupe."
+    },
+    {
+      "id": "l38",
+      "scene": "q4",
+      "pause": 0.7,
+      "text": "Deuxième secret : sa sueur est rouge. Pendant longtemps, on a cru qu'il transpirait du sang."
+    },
+    {
+      "id": "l39",
+      "scene": "q4",
+      "pause": 0.7,
+      "text": "En 2004, des chimistes japonais ont analysé ce liquide. Ce n'est ni du sang, ni de la sueur. Ce sont deux pigments, un rouge et un orange, qui filtrent les rayons du soleil et freinent la croissance de certaines bactéries."
+    },
+    {
+      "id": "l40",
+      "scene": "q4",
+      "pause": 0.7,
+      "text": "Autrement dit, l'hippopotame fabrique sa propre crème solaire, avec un antibiotique en prime."
+    },
+    {
+      "id": "l40b",
+      "scene": "q4",
+      "pause": 0.7,
+      "text": "Des chercheurs ont essayé de s'en inspirer pour nos crèmes solaires. Sans succès pour l'instant : ces pigments sont beaucoup trop instables."
+    },
+    {
+      "id": "l41",
+      "scene": "q4",
+      "pause": 0.7,
+      "text": "Troisième secret, le plus surprenant : ses plus proches cousins vivants ne sont ni les cochons, ni les éléphants. Ce sont les baleines et les dauphins. Leur dernier ancêtre commun vivait il y a environ cinquante-cinq millions d'années."
+    },
+    {
+      "id": "l42",
+      "scene": "q5",
+      "pause": 1.2,
+      "text": "Question numéro cinq : que font des hippopotames en Colombie ?"
+    },
+    {
+      "id": "l43",
+      "scene": "q5",
+      "pause": 0.7,
+      "text": "Dans les années 1980, le baron de la drogue Pablo Escobar fait venir quatre hippopotames dans son zoo privé, l'Hacienda Nápoles. Un mâle et trois femelles."
+    },
+    {
+      "id": "l43b",
+      "scene": "q5",
+      "pause": 0.7,
+      "text": "L'Hacienda Nápoles, c'est un immense domaine avec des lacs, entre Medellín et Bogota. Escobar y a aussi des girafes, des zèbres et des éléphants."
+    },
+    {
+      "id": "l44",
+      "scene": "q5",
+      "pause": 0.7,
+      "text": "En 1993, Escobar est tué. Les autres animaux du zoo sont emmenés ailleurs, mais les hippopotames sont trop lourds et trop dangereux. On les laisse sur place."
+    },
+    {
+      "id": "l45",
+      "scene": "q5",
+      "pause": 0.7,
+      "text": "Ils gagnent le fleuve Magdalena. Là-bas, pas de saison sèche sévère, et aucun prédateur pour les arrêter. Alors ils se reproduisent."
+    },
+    {
+      "id": "l46",
+      "scene": "q5",
+      "pause": 0.7,
+      "text": "Fin 2023, le gouvernement colombien en compte cent soixante-neuf. Selon une étude publiée la même année, ils pourraient être plus de mille en 2050."
+    },
+    {
+      "id": "l46b",
+      "scene": "q5",
+      "pause": 0.7,
+      "text": "C'est aujourd'hui le plus grand groupe d'hippopotames sauvages en dehors de l'Afrique."
+    },
+    {
+      "id": "l47",
+      "scene": "q5",
+      "pause": 0.7,
+      "text": "Ils transforment les rivières, entrent en concurrence avec les lamantins et inquiètent les pêcheurs. Fin 2023, la Colombie a commencé à les stériliser, un par un. Une opération longue, chère, et risquée pour les vétérinaires."
+    },
+    {
+      "id": "l47b",
+      "scene": "q5",
+      "pause": 0.7,
+      "text": "Certains scientifiques défendent pourtant leur présence : selon eux, ils jouent le rôle de grands herbivores disparus d'Amérique du Sud il y a des milliers d'années. Le débat est loin d'être tranché."
+    },
+    {
+      "id": "l48",
+      "scene": "q5",
+      "pause": 0.7,
+      "text": "Quatre animaux, rapportés pour un caprice. Trente ans plus tard, tout un pays ne sait plus quoi en faire."
+    },
+    {
+      "id": "l49",
+      "scene": "end",
+      "pause": 1.1,
+      "text": "Alors, que faire si vous croisez un hippopotame ? Gardez vos distances, surtout au bord de l'eau, et ne vous placez jamais entre lui et la rivière."
+    },
+    {
+      "id": "l49b",
+      "scene": "end",
+      "pause": 0.7,
+      "text": "Si vous êtes à pied et qu'il fonce vers vous, éloignez-vous de l'eau et mettez un gros obstacle entre vous et lui."
+    },
+    {
+      "id": "l50",
+      "scene": "end",
+      "pause": 0.7,
+      "text": "En bateau, restez loin des groupes et faites-vous remarquer de loin : un hippopotame surpris est un hippopotame dangereux. Et s'il ouvre la gueule en grand vers vous, ce n'est pas qu'il est fatigué. Reculez."
+    },
+    {
+      "id": "l50b",
+      "scene": "end",
+      "pause": 0.8,
+      "text": "Le plus ironique, c'est que l'animal qui fait si peur est lui-même menacé. L'UICN classe l'hippopotame comme vulnérable, à cause du braconnage pour sa viande et ses dents, et des rivières grignotées par l'agriculture."
+    },
+    {
+      "id": "l51",
+      "scene": "end",
+      "pause": 0.9,
+      "text": "Paul Templer, lui, est retourné sur le Zambèze deux ans après l'attaque. En passant devant l'endroit où il avait failli mourir, un énorme hippopotame a refait surface, juste à côté de son canoë."
+    },
+    {
+      "id": "l52",
+      "scene": "end",
+      "pause": 0.9,
+      "text": "Et vous, après ça, vous remonteriez dans le canoë ? Dites-le moi en commentaire."
+    }
+  ],
+  "facts": [
+    {
+      "claim": "Attaque du 9 mars 1996 près des chutes Victoria (Zambèze), Paul Templer ~27 ans, apprenti Evans Namasango noyé, 40+ plaies, bras gauche amputé, « jusqu'à la taille dans la gueule »",
+      "src": "https://en.wikipedia.org/wiki/1996_Zambezi_River_hippopotamus_attack"
+    },
+    {
+      "claim": "Retour sur le Zambèze deux ans après, un hippopotame refait surface à côté de son canoë",
+      "src": "https://en.wikipedia.org/wiki/1996_Zambezi_River_hippopotamus_attack"
+    },
+    {
+      "claim": "« 500 morts par an » = estimation d'encyclopédie (Britannica : 500 à 3 000), pas de données dans la littérature médicale",
+      "src": "https://www.africacheck.org/fact-checks/fbchecks/yes-hippos-kill-around-500-people-year-africa"
+    },
+    {
+      "claim": "Serpents : 81 000 à 138 000 morts par an",
+      "src": "https://www.who.int/news-room/fact-sheets/detail/snakebite-envenoming"
+    },
+    {
+      "claim": "Paludisme : ≈ 597 000 morts (2023)",
+      "src": "https://www.who.int/teams/global-malaria-programme/reports/world-malaria-report-2024"
+    },
+    {
+      "claim": "Requins : une dizaine d'attaques mortelles non provoquées par an",
+      "src": "https://www.floridamuseum.ufl.edu/shark-attacks/yearly-worldwide-summary/"
+    },
+    {
+      "claim": "Poids moyen ≈ 1,5 t (mâles 1 480 kg, femelles 1 365 kg), gros mâles > 3 t ; canines > 50 cm, à croissance continue ; course 30 km/h sur quelques centaines de mètres",
+      "src": "https://en.wikipedia.org/wiki/Hippopotamus"
+    },
+    {
+      "claim": "Gueule ouverte ≈ 150° ; « bâillement » = menace",
+      "src": "https://en.wikipedia.org/wiki/Hippopotamus"
+    },
+    {
+      "claim": "Morsure ≈ 8 100 N, une seule mesure sur une femelle (Brady Barr, National Geographic)",
+      "src": "https://en.wikipedia.org/wiki/Hippopotamus"
+    },
+    {
+      "claim": "Ne nage pas (trop dense), marche au fond, apnée ≈ 5 min, dort sous l'eau en remontant par réflexe ; petits nés et allaités sous l'eau",
+      "src": "https://www.nationalgeographic.com/animals/mammals/facts/hippopotamus"
+    },
+    {
+      "claim": "35 à 50 kg d'herbe par nuit",
+      "src": "https://www.nationalgeographic.com/animals/mammals/facts/hippopotamus"
+    },
+    {
+      "claim": "Sueur rouge : acide hipposudorique (rouge) + norhipposudorique (orange), filtre UV et antibactérien (Saikawa et al. 2004, Nature 429:363)",
+      "src": "https://www.nature.com/articles/429363a"
+    },
+    {
+      "claim": "Plus proches parents vivants : cétacés, ancêtre commun ≈ 55 millions d'années",
+      "src": "https://en.wikipedia.org/wiki/Hippopotamus"
+    },
+    {
+      "claim": "Escobar : 4 hippopotames (1 mâle, 3 femelles) dans les années 1980, laissés sur place après 1993 ; 169 recensés fin 2023 ; > 1 000 projetés en 2050 (Scientific Reports 2023) ; stérilisations depuis fin 2023",
+      "src": "https://en.wikipedia.org/wiki/Hippopotamuses_in_Colombia"
+    },
+    {
+      "claim": "L'hippopotame attaque Templer trois fois",
+      "src": "https://archive.seattletimes.com/archive/19960524/2330965/guide-survives-harrowing-attack-by-persistent-hippo----4000--pounder-struck-3-times"
+    },
+    {
+      "claim": "Combats entre mâles parfois mortels ; marquage par dispersion des excréments avec la queue ; peu de prédateurs des adultes (lions, hyènes, crocodiles sur les petits) ; cris amphibies (air + eau)",
+      "src": "https://en.wikipedia.org/wiki/Hippopotamus"
+    },
+    {
+      "claim": "Hacienda Nápoles (Puerto Triunfo, entre Medellín et Bogota) : girafes, zèbres, éléphants ; plus grand groupe hors d'Afrique ; débat sur le rôle écologique (herbivores disparus)",
+      "src": "https://en.wikipedia.org/wiki/Hippopotamuses_in_Colombia"
+    },
+    {
+      "claim": "UICN : Vulnérable (braconnage viande/ivoire, perte d'habitat)",
+      "src": "https://www.iucnredlist.org/species/10103/18567364"
+    },
+    {
+      "claim": "La femelle s'isole pour mettre bas et revient après 10 à 14 jours",
+      "src": "https://en.wikipedia.org/wiki/Hippopotamus"
+    },
+    {
+      "claim": "Pigments trop instables pour servir de crème solaire humaine",
+      "src": "https://www.sciencehistory.org/distillations/sweating-blood"
+    }
+  ]
+}
