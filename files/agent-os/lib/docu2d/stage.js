@@ -11,12 +11,13 @@ const PUB = path.join(REMOTION, "public-d2");
 
 function creditLine(c, lang = "fr") {
   if (!c) return "";
-  const L = lang === "fr" ? { v: "Vidéo", p: "Photo", via: "via" } : { v: "Video", p: "Photo", via: "via" };
-  const who = c.author ? `${c.author}, ` : "";
-  if (c.src === "pexels") return `${L.v} : ${who}Pexels`;
-  if (c.src === "pixabay") return `${L.v} : ${who}Pixabay`;
-  if (c.src === "commons") return `${L.v} : ${who}${c.license} ${L.via} Wikimedia Commons`;
-  return `${L.v} : ${who}${c.license || c.src}`;
+  // « Source : Pexels » (pas « Vidéo : » : le plan peut être une photo) ; Commons garde auteur + licence (CC BY l'exige) ; image IA : rien à l'écran
+  const S = lang === "fr" ? "Source :" : "Source:";
+  if (c.src === "ai") return "";
+  if (c.src === "pexels") return `${S} Pexels`;
+  if (c.src === "pixabay") return `${S} Pixabay`;
+  if (c.src === "commons") return `${S} Wikimedia Commons${c.author ? ` — ${c.author}` : ""}${c.license ? ` (${c.license})` : ""}`;
+  return `${S} ${c.src}`;
 }
 
 /** Recoupe chaque plan utilisé (start, durée max utile) → <pub>/<run>/assets/<nom>.mp4 (1280 px, sans son). */
@@ -34,9 +35,9 @@ function stage(runDir, runId, { lang = "fr", maxDur = 16 } = {}) {
     const dst = path.join(out, "assets", isVid ? `${name}.mp4` : `${name}.jpg`);
     if (!fs.existsSync(dst)) {
       if (isVid) execFileSync("ffmpeg", ["-v", "error", "-y", "-ss", String(b.srcStart || 0), "-i", src, "-t", String(maxDur), "-an", "-vf", "scale=1280:-2,fps=30", "-c:v", "libx264", "-crf", "22", "-preset", "veryfast", "-pix_fmt", "yuv420p", dst]);
-      else execFileSync("ffmpeg", ["-v", "error", "-y", "-i", src, "-vf", "scale='min(1600,iw)':-2", dst]);
+      else execFileSync("ffmpeg", ["-v", "error", "-y", "-i", src, "-vf", "scale='min(1920,iw)':-2", dst]);
     }
-    assets[name] = { file: `assets/${path.basename(dst)}`, kind: isVid ? "video" : "image", credit: creditLine(credits[name], lang) };
+    assets[name] = { file: `assets/${path.basename(dst)}`, kind: isVid ? "video" : "image", credit: creditLine(credits[name], lang), ai: credits[name]?.src === "ai" };
   }
   const props = { sb, tl, assets, root: runId, tail: 2 };
   fs.writeFileSync(path.join(out, "props.json"), JSON.stringify(props));

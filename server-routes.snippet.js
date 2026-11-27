@@ -20,7 +20,7 @@
     }
     m = /^\/api\/machines\/docu2d\/runs\/([\w-]+)$/.exec(p);
     if (m && req.method === "GET") { const r = docu2d.getRun(m[1]); return r ? json(res, 200, { ...r, running: docu2d.isLive(r.id) }) : json(res, 404, { error: "run introuvable" }); }
-    m = /^\/api\/machines\/docu2d\/runs\/([\w-]+)\/(resume|validate|cancel|publish|save-texts)$/.exec(p);
+    m = /^\/api\/machines\/docu2d\/runs\/([\w-]+)\/(resume|validate|cancel|publish|save-texts|thumbnail)$/.exec(p);
     if (m && req.method === "POST") {
       const b = await readBody(req).catch(() => ({}));
       try {
@@ -31,6 +31,7 @@
           case "cancel": return json(res, 200, docu2d.cancelRun(id));
           case "publish": return json(res, 200, await docu2d.publishRun(id, b));
           case "save-texts": return json(res, 200, docu2d.saveTexts(id, b));
+          case "thumbnail": return json(res, 200, await docu2d.regenThumbnail(id, b));
         }
       } catch (e) { return json(res, 400, { error: e.message }); }
     }

@@ -114,8 +114,10 @@ export const BarsCard: React.FC<P> = ({ b, T }) => {
 };
 
 /** Plan réel (vidéo ou photo libre) dans un cadre déchiré, crédit en petit (généré depuis credits). */
-export const BrollCard: React.FC<P> = ({ b, T, root, assets }) => {
+export const BrollCard: React.FC<P> = (props) => {
+  const { b, T, root, assets } = props;
   const a = assets[b.asset] || {}; if (!a.file) return null;
+  if (!b.frame) return <BrollFull {...props} />;
   const inn = ease(T, b.t0, 0.4), out = ease(T, b.t1 - 0.3, 0.3); if (T < b.t0 - 0.01 || out >= 1) return null;
   const s = 1 + (T - b.t0) * 0.012; const w = 1380, h = 776;
   return (
@@ -127,6 +129,27 @@ export const BrollCard: React.FC<P> = ({ b, T, root, assets }) => {
         </div>
       </div>
       <div style={{ position: "absolute", left: 18, bottom: 12, fontFamily: PF, fontWeight: 500, fontSize: 17, color: "#5b5b55" }}>{a.credit}</div>
+    </div>
+  );
+};
+
+/** Plan PLEIN ÉCRAN (par défaut) : plan réel libre ou image IA, fondu court, léger travelling (Ken Burns), crédit « Source : … » discret. */
+const BrollFull: React.FC<P> = ({ b, T, root, assets }) => {
+  const a = assets[b.asset] || {};
+  if (T < b.t0 - 0.01 || T > b.t1 + 0.01) return null;
+  const op = Math.min(cl((T - b.t0) / 0.35), cl((b.t1 - T) / 0.35));
+  const k = cl((T - b.t0) / Math.max(1, b.t1 - b.t0));
+  const dir = [...String(b.asset)].reduce((s, c) => s + c.charCodeAt(0), 0) % 2 ? 1 : -1;
+  const img = a.kind !== "video";
+  const s = img ? 1.06 + 0.1 * k : 1.02 + 0.04 * k; const px = dir * (img ? 40 : 14) * (k - 0.5);
+  const src = staticFile(root ? `${root}/${a.file}` : a.file);
+  return (
+    <div style={{ position: "absolute", inset: 0, opacity: op, background: "#000", overflow: "hidden" }}>
+      <div style={{ position: "absolute", inset: 0, transform: `scale(${s}) translateX(${px}px)` }}>
+        {img ? <Img src={src} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <OffthreadVideo src={src} startFrom={Math.round((b.start ?? a.start ?? 0) * 30)} muted style={{ width: "100%", height: "100%", objectFit: "cover" }} />}
+      </div>
+      <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse at 50% 45%, rgba(0,0,0,0) 55%, rgba(0,0,0,0.35) 100%)" }} />
+      {a.credit ? <div style={{ position: "absolute", left: 30, bottom: 24, fontFamily: PF, fontWeight: 600, fontSize: 21, color: "rgba(255,255,255,0.88)", textShadow: "0 1px 5px rgba(0,0,0,0.9)" }}>{a.credit}</div> : null}
     </div>
   );
 };

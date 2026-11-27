@@ -18,13 +18,15 @@ for (let f = 0; f < P.tl.total * 30; f++) {
 // assets présents
 for (const b of beats) if ((b.type === "broll" || b.type === "photo") && !P.assets?.[b.asset]) all.push({ rule: "asset", msg: `plan « ${b.asset} » absent des assets` });
 // part de plans réels (temps d'écran des cartes broll/photo)
-const real = beats.filter((b) => b.type === "broll" || b.type === "photo").reduce((a, b) => a + (b.t1 - b.t0), 0);
+const full = beats.filter((b) => b.type === "broll" || b.type === "photo");
+const real = full.filter((b) => !P.assets?.[b.asset]?.ai).reduce((a, b) => a + (b.t1 - b.t0), 0);
+const aiT = full.filter((b) => P.assets?.[b.asset]?.ai).reduce((a, b) => a + (b.t1 - b.t0), 0);
 const cardsT = beats.filter(isCard).reduce((a, b) => a + (b.t1 - b.t0), 0);
-const out = { anomalies: all, realPct: +(100 * real / P.tl.total).toFixed(1), cardPct: +(100 * cardsT / P.tl.total).toFixed(1), beats: beats.length, total: P.tl.total };
+const out = { anomalies: all, realPct: +(100 * real / P.tl.total).toFixed(1), aiPct: +(100 * aiT / P.tl.total).toFixed(1), cardPct: +(100 * cardsT / P.tl.total).toFixed(1), beats: beats.length, total: P.tl.total };
 if (asJson) console.log(JSON.stringify(out));
 else {
   for (const i of all) console.log(`✗ [${i.rule}] ${i.msg}`);
-  console.log(`plans réels : ${out.realPct} % · cartes : ${out.cardPct} % · ${out.beats} beats · ${out.total.toFixed(1)} s`);
+  console.log(`plans réels : ${out.realPct} % · images IA : ${out.aiPct} % · cartes : ${out.cardPct} % · ${out.beats} beats · ${out.total.toFixed(1)} s`);
   console.log(all.length ? `✗ ${all.length} anomalie(s)` : "✓ storyboard + physique : 0 anomalie");
 }
 process.exit(all.length ? 1 : 0);

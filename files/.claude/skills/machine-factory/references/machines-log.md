@@ -271,3 +271,11 @@ Documentaires animaliers papier découpé (Oceanverse / Depth Theory), banque «
 - **Clé requise** : au moins Pixabay OU Pexels (refus à la création du run) ; coffre étendu (`pixabay`, `elevenlabs`).
 - **Limites v1** : bestiaire 4 pattes (hippo, lion, éléphant, buffle, rhino, crocodile), monde savane ; presets de scène
   (canoe, night, gape, calf, under, sweat…) écrits pour l'hippopotame — à généraliser par famille.
+
+### Machine n°10 — refonte du 27/11 soir (après « t'es parti en couille »)
+- **Pièges CSS de l'UI des machines** (valables partout) : `.grid-4` N'EXISTAIT PAS dans `app.css` (les 4 champs s'empilaient en pleine largeur — Data Ranking avait le même défaut) → ajouté ; `label.field span { display:block }` casse toute `<span class="row">` placée dans un label (le 💡 passe SOUS le champ, les mentions muettes sautent à la ligne) → mettre l'input + bouton dans un `<div class="row">` hors du label ; l'attribut `hidden` sur un `label.field` est écrasé par `display:block` → basculer `style.display`.
+- **Partir de l'UI Data Ranking** (form grid-4 + 2 `fbar` + prix vert + ligne pipeline ; wizard rail + Fini avec miniature à gauche, titre/description/tags + compteurs + 📋 + publication à droite) au lieu d'en écrire une à part.
+- **Devis lisible** : une ligne « Devis : voix … · N images IA … · musique … » sous le bouton, recalculée à chaque option (pas seulement en infobulle) — Alex demande toujours « sur quoi tu te bases ».
+- **Voix écoutable en entier** à l'étape Voix (mp3 complet monté sur la timeline), planche = vignettes 1 image / 3 s horodatées et cliquables (pas une planche 4×3 réduite).
+- **Miniature IA au code de la niche** : i2i sur les 2 miniatures concurrentes les plus vues (Drive public) + texte posé par Remotion (accents justes, `*mot*` en rouge) plutôt que demandé au modèle d'image.
+- **Ne jamais s'auto-interdire un outil** (images IA) qu'Alex n'a pas interdit.

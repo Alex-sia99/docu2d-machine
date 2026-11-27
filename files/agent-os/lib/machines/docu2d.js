@@ -56,9 +56,9 @@ const ELEVEN_VOICES = [
 ];
 const DEFAULTS = {
   lang: "fr", durationMin: 10, voice: "JBFqnCBsd6RMkjVDRZzb", voiceModel: "eleven_v4", // George (voix publique ElevenLabs)
-  realPct: 12,            // part de plans RÉELS visée (le reste = motion design papier) — mesurée et affichée après coup
-  aiImages: false,        // images IA en dernier recours (plan réel introuvable) — marquées « illustration IA »
-  aiVideo: false,         // vidéo IA (non par défaut, décision du 27/11)
+  realPct: 40,            // part PLEIN ÉCRAN visée (plans réels libres + images IA) ; le reste = motion design papier — mesurée après coup
+  aiImages: true,         // images IA plein écran pour ce qu'aucun plan libre ne montre (autorisées par Alex le 27/11 soir)
+  aiVideo: false,         // anime les images IA (Kie grok i2v, 6 s) — coûteux, non par défaut
   fairUse: false,         // désactivé (décision d'Alex du 27/11) ; si un jour activé → mention légale auto dans la description
   sources: ["pexels", "pixabay", "commons"],
   music: true, musicVolume: 0.14,
@@ -66,7 +66,11 @@ const DEFAULTS = {
   mode: "semi", publishPrivacy: "private", brand: "Ma chaîne",
   pace: {}, // mots / min de PAROLE mesurés (hors pauses) — mis à jour à chaque run
 };
-const PRICES = { elevenPer1kChars: 0.15, music: 0.06, llm: 0.08, aiImage: 0.02, aiVideo: 0.3 };
+const PRICES = { elevenPer1kChars: 0.15, music: 0.06, llm: 0.08, aiImage: 0.03, aiVideo: 0.15, thumb: 0.03, vision: 0.002 };
+// images IA : GPT Image 2.5 (même modèle que Data Ranking, 1K éco) ; vidéo IA : grok i2v 6 s 720p
+const KIE_IMG = { t2i: "gpt-image-2-5-flare-text-to-image", i2i: "gpt-image-2-5-flare-image-to-image", field: "input_urls" };
+const KIE_VIDEO = "grok-imagine-video-1-5-preview";
+const NICHE_NAME = /docu animaux 2d/i;
 const SPECIES_OK = ["hippo", "lion", "elephant", "buffalo", "rhino", "crocodile", "hyena"];
 
 // ---------------------------------------------------------------- persistance
@@ -164,6 +168,7 @@ async function stepScript(run) {
   const s = config().settings;
   const wpm = speechWpm(run.params.voice, s);
   const target = Math.round(run.params.durationMin * 60 * 0.85 * wpm / 60); // ≈ 15 % de pauses
+  const nQ = run.params.durationMin <= 1.5 ? 2 : run.params.durationMin <= 4 ? 3 : 5; const short = run.params.durationMin <= 1.5;
   const gold = goldScript();
   const ex = gold ? ["Chapitres : " + gold.chapters.map((c) => c.title).join(" · "), ...gold.lines.filter((l) => ["hook", "promise"].includes(l.scene) || ["l10", "l11", "l12", "l13"].includes(l.id)).map((l) => `${l.id} [${l.scene}] ${l.text}`)].join("\n") : "";
   let best = null;
@@ -172,12 +177,15 @@ async function stepScript(run) {
       `Écris la voix off d'un documentaire YouTube papier découpé de ${run.params.durationMin} min sur « ${run.params.subject} », en ${LANGS[run.params.lang] || run.params.lang}.`,
       `LONGUEUR : EXACTEMENT ${Math.round(target * 0.97)} à ${Math.round(target * 1.03)} mots au total (débit mesuré de la voix : ${wpm} mots/min).`,
       "STRUCTURE (recette mesurée sur la niche Oceanverse / Depth Theory) :",
-      "- hook : 6-8 répliques à la DEUXIÈME personne (« Vous… ») qui plongent dans l'histoire vraie du registre, cliffhanger, puis le paradoxe ;",
-      "- promise : la question-titre + le sommaire des 5 questions (une phrase par question) ;",
-      "- q1 … q5 : chaque chapitre commence par « Question numéro N : … ? » puis 5-9 répliques de faits du registre, concrets et chiffrés ;",
-      "- cta : UNE réplique au milieu (après q2) : like + abonnement + « la suite est encore plus étrange » ;",
-      "- end : 2-3 répliques de conseils concrets ou de perspective, retour à l'histoire de l'accroche, question finale + « Dites-le moi en commentaire ».",
-      "ZÉRO INVENTION : aucun événement, aucune action, aucune conséquence, aucun conseil qui ne soit dans le registre. Si l'histoire ne contient pas de danger, on ne lui en invente pas : l'accroche devient une scène IMAGINÉE au présent (« Imaginez : vous… ») où seuls des faits du registre arrivent. Jamais de remplissage : chaque réplique apporte une information nouvelle (pas d'adjectifs répétés, pas de « africain » à chaque phrase). Les 5 chapitres sont des QUESTIONS DE CURIOSITÉ fortes (bon : « Pourquoi même les lions l'évitent ? », « Avec quelles armes ? » ; mauvais : « Le poids maximal », « La consommation quotidienne »). Si le registre est trop mince pour la longueur demandée, écris PLUS COURT plutôt que de broder.",
+      short ? `- hook : 2 répliques à la DEUXIÈME personne (« Vous… ») + le paradoxe ;` : "- hook : 6-8 répliques à la DEUXIÈME personne (« Vous… ») qui plongent dans l'histoire vraie du registre, cliffhanger, puis le paradoxe ;",
+      short ? `- promise : la question-titre en UNE réplique ;` : `- promise : la question-titre + le sommaire des ${nQ} questions (une phrase par question) ;`,
+      `- q1 … q${nQ} : chaque chapitre commence par « Question numéro N : … ? » puis ${short ? "2-3" : "5-9"} répliques de faits du registre, concrets et chiffrés ;`,
+      short ? "- (pas de cta au milieu : la vidéo est trop courte)" : "- cta : UNE réplique au milieu (après q2) : like + abonnement + « la suite est encore plus étrange » ;",
+      `- end : ${short ? "1-2 répliques" : "2-3 répliques de conseils concrets ou de perspective, retour à l'histoire de l'accroche,"} question finale + « Dites-le moi en commentaire » + abonnement.`,
+      "ZÉRO INVENTION : aucun événement, aucune action, aucune conséquence, aucun conseil qui ne soit dans le registre. Si l'histoire ne contient pas de danger, on ne lui en invente pas : l'accroche devient une scène IMAGINÉE au présent (« Imaginez : vous… ») où seuls des faits du registre arrivent. Jamais de remplissage : chaque réplique apporte une information nouvelle (pas d'adjectifs répétés, pas de « africain » à chaque phrase). Les ${nQ} chapitres sont des QUESTIONS DE CURIOSITÉ fortes (bon : « Pourquoi même les lions l'évitent ? », « Avec quelles armes ? » ; mauvais : « Le poids maximal », « La consommation quotidienne »). Si le registre est trop mince pour la longueur demandée, écris PLUS COURT plutôt que de broder.",
+      "ANGLE (niche « Docu Animaux » : Depth Theory, Oceanverse) : ce qui rend l'animal IMPRESSIONNANT ou DANGEREUX pour un humain qui le croiserait — sa force, ses armes, sa vitesse, ses attaques documentées, ce qu'il faut faire face à lui — pris dans le registre. Les anecdotes de biologie (moustaches, variantes de couleur) seulement si elles servent cet angle.",
+      "TITRE : formule de la niche, clair et concret (bon : « Pourquoi vous ne voudriez jamais croiser un lion », « Ce que le lion fait vraiment la nuit » ; mauvais : « Pourquoi ce carnivore vulnérable cache des secrets si fragiles ? »).",
+      "LANGUE : orthographe et typographie irréprochables (apostrophes, accents, termes scientifiques exacts : « leucisme »), phrases naturelles qu'un narrateur dirait vraiment, aucune tournure traduite mot à mot.",
       "RÈGLES : uniquement les faits du registre (jamais de chiffre inventé) ; un fait « uncertain » est présenté avec prudence (« on cite souvent… personne ne l'a vraiment compté ») ; répliques de 15 à 40 mots ; phrases orales, simples, rythmées ; aucune parenthèse ; nombres écrits en lettres quand ils sont courts ; pas de « venimeux » pour un animal qui ne l'est pas.",
       ex ? `EXEMPLE DE TON ET DE RYTHME (vidéo de référence, ne pas copier le contenu) :\n${ex}` : "",
       `REGISTRE DES FAITS :\n${JSON.stringify(run.facts)}\nHISTOIRE : ${JSON.stringify(run.story)}`,
@@ -185,10 +193,10 @@ async function stepScript(run) {
     ].filter(Boolean).join("\n"), "Script");
     const lines = (j.lines || []).filter((l) => l && l.text).map((l, i) => ({ id: `l${String(i + 1).padStart(2, "0")}`, scene: l.scene || "q1", pause: /^q\d$/.test(l.scene) && /^(question|question number|pregunta|frage)/i.test(l.text) ? 1.2 : Number(l.pause) || 0.7, text: String(l.text).replace(/\s+/g, " ").trim() }));
     const n = lines.reduce((x, l) => x + words(l.text), 0);
-    const cand = { title: j.title || run.params.subject, chapters: (j.chapters || []).slice(0, 5), lines, n };
+    const cand = { title: j.title || run.params.subject, chapters: (j.chapters || []).slice(0, nQ), lines, n };
     if (!best || Math.abs(n - target) < Math.abs(best.n - target)) best = cand;
     log(run, `📝 Script essai ${a} : ${lines.length} répliques, ${n} mots (cible ${target})`);
-    if (Math.abs(n - target) / target <= 0.08 && cand.chapters.length === 5) break;
+    if (Math.abs(n - target) / target <= 0.08 && cand.chapters.length === nQ) break;
   }
   // RELECTURE DES FAITS : chaque réplique est confrontée au registre ; une affirmation non sourcée est réécrite ou retirée
   try {
@@ -219,24 +227,27 @@ async function stepVoice(run) {
   log(run, `🎙 ElevenLabs : ${script.lines.length} répliques (${script.lines.reduce((a, l) => a + l.text.length, 0)} caractères)…`);
   const chars = await voice.synth(dir, script, { onLine: (i, n) => { if (i % 10 === 0) log(run, `🎙 voix ${i}/${n}`); }, cancelled: () => cancelled.has(run.id) });
   addCost(run, "voice", (chars / 1000) * PRICES.elevenPer1kChars, "elevenlabs", `${chars} car.`);
-  const k = voice.pauseForTarget(dir, script, run.params.durationMin * 60);
-  const tl = voice.tighten(dir, script, { pause: k });
+  const outro = run.params.durationMin <= 2 ? 2.5 : run.params.durationMin <= 5 ? 5 : 9;
+  const k = voice.pauseForTarget(dir, script, run.params.durationMin * 60, { outro });
+  const tl = voice.tighten(dir, script, { pause: k, outro });
   const speech = tl.lines.reduce((a, l) => a + l.dur, 0); const w = script.lines.reduce((a, l) => a + words(l.text), 0);
   const wpm = Math.round((w / speech) * 60);
   patchConfig({ settings: { pace: { ...config().settings.pace, [run.params.voice]: wpm } } });
   run.timeline = { total: tl.total, lines: tl.lines.length, wpm, pause: k };
+  try { mixer.voiceFull(dir, path.join(dir, "voice-full.mp3")); run.voiceRel = `agent-os/output/machines/${run.id}/voice-full.mp3`; } catch (e) { log(run, "voix complète : " + e.message.slice(0, 100)); }
   log(run, `🎙 Voix : ${Math.floor(tl.total / 60)} min ${Math.round(tl.total % 60)} s · débit ${wpm} mots/min · pauses ×${k}`);
 }
 
 // ---------------------------------------------------------------- 4. storyboard (+ vérificateur)
-const BEAT_DOC = (hero, aquatic) => `TYPES DE BEATS (ancrés sur un MOT de la réplique : "line" + "at" ; optionnel "until"/"untilLine") :
+const BEAT_DOC = (hero, aquatic, ai) => `TYPES DE BEATS (ancrés sur un MOT de la réplique : "line" + "at" ; optionnel "until"/"untilLine") :
 CARTES (une seule à la fois, elle coupe la précédente ; elle doit rester LISIBLE : ≥ 2,5 s et ≥ 1,2 s + 0,05 s par caractère affiché — en pratique UNE carte par réplique au plus, ancrée tôt dans la réplique) :
 - title {text, sub} · toc {items:[{at}×5]} (sommaire) · chapter {n} (« Question n ») · end {text} (DERNIÈRE réplique : question en commentaire + J'aime/S'abonner)
 - bignum {n, unit, sub, icon} (≤ 20 % des cartes, jamais 3 cartes du même type à la suite) · compare {items:[{who: human|child|car|<espèce>, label, value, at}]} (tailles réelles)
 - bars {title, log:true|false, items:[{label, icon, value, display, at, line?, hi?}]} · map {focus:"ISO3" ou [lon,lat], zoom0, zoom, highlight:["ISO3"], names?:["ISO3" SEULEMENT si le pays est cité], pins:[{lonlat:[lon,lat], label, at}]}
 - anatomy {species, gape (°), gapeAt, labels:[{part: canine|incisor|eye|ear|nostril|lips|skin|leg|belly, text, at, side: left|right|bottom}]}
 - timeline {items:[{year, text, at, line?}] — au moins 3 dates} · quote {text} · icons {title, items:[{icon, label, at, no?, ok?}]}
-- broll {asset:"nom_court", query:"3 à 5 mots ANGLAIS décrivant un plan réel filmable de l'espèce"} (plan réel libre, vérifié par la vision)
+- broll {asset:"nom_court", query:"3 à 6 mots ANGLAIS d'un plan réel filmable", hero:true|false} — PLAN RÉEL PLEIN ÉCRAN (libre de droits, vérifié par la vision). PAS SEULEMENT l'espèce : tout ce que la voix évoque et qui se filme — un pêcheur sur une pirogue, un village au bord d'un fleuve, un fleuve au coucher du soleil, des touristes en safari, un autre animal cité. hero:true si le plan doit montrer l'espèce du sujet (espèce EXACTE vérifiée), false sinon. Un plan dure 4 à 8 s (untilLine pour prolonger).${ai ? `
+- broll {asset:"nom_court", ai:"PROMPT ANGLAIS 50-110 mots"} — IMAGE IA PLEIN ÉCRAN, photo-réaliste, pour ce qu'AUCUN plan libre ne peut montrer : une attaque, un moment précis de l'histoire racontée, un comportement rare, une scène sous l'eau, un détail anatomique en situation. Décris la scène, la lumière, le cadrage ; espèce exacte nommée ; jamais une personne réelle identifiable, jamais de sang excessif.` : ""}
 ÉTIQUETTES : tag {text (≤ 34 car.), sub?, kind: white|orange|yellow|green} ; ≥ 1,8 s visibles ; elles NOMMENT ce qu'on voit, jamais au hasard.
 MONDE (plan-séquence dessiné) : world {preset, spot?, night?, events?:[{do, at, line?}]} — JAMAIS deux fois le même preset à la suite, aucun preset > 35 % du temps du monde :
   presets pour toute espèce : wide (vue d'ensemble) · herd (troupeau ${aquatic ? "dans l'eau" : "dans la plaine"}) · cross (l'animal traverse le cadre) · drink (boit au bord de l'eau) · portrait (gros plan de la tête) · graze (broute ; night 0.5 = crépuscule) · charge (events go) · calf (mère + petit) · night (events return, man, gape : un humain entre l'animal et l'eau)
@@ -285,13 +296,14 @@ async function stepStoryboard(run) {
   const tl = jsonOf(path.join(dir, "timeline.json")); const script = jsonOf(path.join(dir, "script.json"));
   const gold = jsonOf(path.join(GOLD, "storyboard.json"));
   const lines = tl.lines.map((l) => `${l.id} [${l.scene}] (${l.dur.toFixed(1)} s) ${l.text}`).join("\n");
-  const nBroll = Math.max(3, Math.ceil((tl.total * (run.params.realPct / 100)) / 4.5));
+  const nBroll = Math.max(3, Math.ceil((tl.total * (run.params.realPct / 100)) / 5.5));
+  const nAi = run.params.aiImages ? Math.max(1, Math.round(nBroll / 3)) : 0;
   let sb = null, issues = [];
   for (let a = 1; a <= 4; a++) {
     const prompt = a === 1 || !sb ? [
       `Écris le STORYBOARD JSON d'une vidéo papier découpé (${Math.round(tl.total)} s) : chaque réplique reçoit 1 à 3 beats qui ILLUSTRENT exactement ce qui est dit, au mot près.`,
-      BEAT_DOC(run.meta.hero, ["hippo", "crocodile"].includes(run.meta.hero)),
-      `RÈGLES : premier beat = world (preset adapté à l'accroche) ; un chapter au début de chaque « Question numéro N » ; toc sur la réplique du sommaire ; title sur la question-titre ; un cta sur la réplique cta ; end sur la dernière réplique ; au plus UNE carte par réplique ; environ un beat toutes les 6 s (mesure de la niche) ; EXACTEMENT ${nBroll} beats broll (part de plans réels visée : ${run.params.realPct} %) répartis sur toute la vidéo, sur des répliques qui décrivent un comportement filmable ; alterner cartes et monde (≈ 45 % du temps en cartes) ; un beat world différent du précédent à chaque retour au monde ; chiffres du script = chiffres des cartes ; "at" = un mot EXACT de la réplique.`,
+      BEAT_DOC(run.meta.hero, ["hippo", "crocodile"].includes(run.meta.hero), run.params.aiImages),
+      `RÈGLES : premier beat = world (preset adapté à l'accroche) ; un chapter au début de chaque « Question numéro N » ; toc sur la réplique du sommaire ; title sur la question-titre ; un cta sur la réplique cta ; end sur la dernière réplique ; au plus UNE carte par réplique ; environ un beat toutes les 6 s (mesure de la niche) ; EXACTEMENT ${nBroll} beats broll PLEIN ÉCRAN (part visée : ${run.params.realPct} % du temps)${nAi ? `, dont ${nAi} images IA (champ ai) et ${nBroll - nAi} plans réels (champ query)` : " (plans réels, champ query)"}, répartis sur toute la vidéo, chacun sur la réplique qu'il illustre mot pour mot (une pirogue quand on parle de pirogue, un village quand on parle d'habitants) ; alterner cartes et monde (≈ 45 % du temps en cartes) ; un beat world différent du précédent à chaque retour au monde ; chiffres du script = chiffres des cartes ; "at" = un mot EXACT de la réplique.`,
       `Espèce dessinée : ${run.meta.hero}. Monde : savane (plaine, berge, rivière avec troupeau).`,
       gold ? `EXEMPLE (vidéo de référence, extrait) : ${JSON.stringify({ chapters: gold.chapters, beats: gold.beats.slice(0, 40) })}` : "",
       `RÉPLIQUES :\n${lines}`,
@@ -306,7 +318,7 @@ async function stepStoryboard(run) {
     const j = await askJson(prompt, `Storyboard ${a}`);
     if (!Array.isArray(j.beats) || !j.beats.length) continue;
     sb = { meta: { ...j.meta, world: "savane", hero: run.meta.hero, lang: run.params.lang, title: script.title }, chapters: script.chapters, beats: j.beats };
-    for (const b of sb.beats) if (b.type === "broll") b.asset = String(b.asset || b.query || "plan").toLowerCase().replace(/[^a-z0-9]+/g, "_").slice(0, 24);
+    for (const b of sb.beats) if (b.type === "broll") { b.asset = String(b.asset || b.query || "plan").toLowerCase().replace(/[^a-z0-9]+/g, "_").slice(0, 24); if (b.ai && !run.params.aiImages) { if (!b.query) b.query = String(b.ai).split(/\s+/).slice(0, 5).join(" "); delete b.ai; } }
     fs.writeFileSync(path.join(dir, "storyboard.json"), JSON.stringify(sb, null, 1));
     // vérification sans plans (les broll seront remplis ensuite) : on stage avec des assets factices
     const fake = Object.fromEntries(sb.beats.filter((b) => b.type === "broll").map((b) => [b.asset, { file: "", kind: "video", credit: "" }]));
@@ -367,7 +379,7 @@ async function searchClip(q, srcs, used) {
 /** Télécharge un candidat, le recoupe en 720p, puis le fait REGARDER par Qwen (vision) : bonne espèce EXACTE, vraie vidéo,
  *  scène conforme. Leçon du buffle (27/11) : la recherche « african buffalo » ramène des buffles d'eau asiatiques et une
  *  requête « lion attacking buffalo » un buffle caressé derrière une clôture. Rejeté → candidat suivant. */
-async function fetchVerified(run, name, queries, srcs, used, bdir, rejected) {
+async function fetchVerified(run, name, queries, srcs, used, bdir, rejected, heroShot = true) {
   const lab = require("../lab"); const sp = SPECIES_NAME(run); let tries = 0;
   for (const q of queries) {
     const generic = q === sp || q === sp.split(" ").pop();
@@ -379,7 +391,14 @@ async function fetchVerified(run, name, queries, srcs, used, bdir, rejected) {
         await new Promise((res, rej) => { const p = spawn("ffmpeg", ["-v", "error", "-y", "-i", raw, "-t", "20", "-an", "-vf", "scale=1280:-2,fps=30", "-c:v", "libx264", "-crf", "22", "-preset", "veryfast", "-pix_fmt", "yuv420p", out], { windowsHide: true }); track(p); p.stdout.on("data", () => {}); p.on("close", (code) => (code === 0 ? res() : rej(new Error("ffmpeg")))); });
         try { fs.unlinkSync(raw); } catch {}
         const d = await voice.dur(out); const frames = [0.25, 0.65].map((k, i) => { const fp = path.join(bdir, `${name}-v${i}.jpg`); require("child_process").execFileSync("ffmpeg", ["-v", "error", "-y", "-ss", String((d * k).toFixed(2)), "-i", out, "-frames:v", "1", "-vf", "scale=640:-2", fp]); return fp; });
-        const content = [{ type: "text", text: [
+        const content = [{ type: "text", text: !heroShot ? [
+          `Ces deux images viennent du même plan vidéo, prévu pour illustrer un documentaire animalier sur : ${run.params.subject}.`,
+          `Plan attendu : « ${q} ».`,
+          "- matches : true si on voit bien ce plan (les personnes, le lieu, l'objet ou l'animal décrits) ; un animal visible doit être celui décrit ;",
+          "- real : true si c'est une vraie vidéo filmée (pas un dessin, une 3D, un écran, un texte incrusté, un logo) ;",
+          "- ok : true si le plan convient à un documentaire sérieux (pas de mise en scène publicitaire, pas de selfie) ;",
+          "- sharp : true si l'image est NETTE et le sujet bien visible et cadré (pas flou, pas coupé, pas caché par un premier plan) ;",
+          'JSON UNIQUEMENT : {"species":"","ok":true,"real":true,"matches":false,"captive":false,"sharp":true,"scene":""}'].join("\n") : [
           `Ces deux images viennent du même plan vidéo, prévu pour illustrer un documentaire sur : ${run.params.subject} (${sp}).`,
           `Plan attendu : « ${q} ».`,
           `Titre / adresse de la vidéo chez la source (indice fiable sur l'espèce) : « ${(c.page || c.title || "").split("/").filter(Boolean).pop() || "inconnu"} ».`,
@@ -387,26 +406,48 @@ async function fetchVerified(run, name, queries, srcs, used, bdir, rejected) {
           `- ok : true SEULEMENT si c'est exactement cette espèce (${sp}), pas une espèce voisine (ex. buffle d'eau asiatique ≠ buffle d'Afrique, éléphant d'Asie ≠ d'Afrique) ;`,
           `- real : true si c'est une vraie vidéo filmée (pas un dessin, une 3D, un écran, un texte) ;`,
           `- matches : true si la scène correspond au plan attendu${generic ? " (ici : n'importe quel plan naturel de l'espèce convient)" : ""} ;`,
-          `- captive : true si on voit un zoo, une clôture, une cage, des humains qui la nourrissent.`,
-          'JSON UNIQUEMENT : {"species":"","ok":false,"real":true,"matches":false,"captive":false,"scene":""}'].join("\n") },
+          `- captive : true si on voit un zoo, une clôture, une cage, des humains qui la nourrissent, OU un enclos aménagé (rondins posés, sol nu entretenu, arbres d'un autre continent que l'habitat de l'espèce) ;`,
+          "- sharp : true si l'image est NETTE et l'animal bien visible et cadré (pas flou, pas coupé, pas caché par un premier plan).",
+          'JSON UNIQUEMENT : {"species":"","ok":false,"real":true,"matches":false,"captive":false,"sharp":true,"scene":""}'].join("\n") },
           ...frames.map((fp) => ({ type: "image_url", image_url: { url: "data:image/jpeg;base64," + fs.readFileSync(fp).toString("base64") } }))];
         const v = await lab.askVision(content); addCost(run, "check", v.cost || 0.001, "openrouter", "vision b-roll");
         frames.forEach((fp) => { try { fs.unlinkSync(fp); } catch {} });
         const j = v.json || {};
-        if (j.ok && j.real !== false && (j.matches || generic) && !j.captive) return { c, q, seen: j.scene || j.species };
+        if (j.ok && j.real !== false && j.sharp !== false && (j.matches || generic) && !j.captive) return { c, q, seen: j.scene || j.species };
         rejected.add(c.id); try { fs.unlinkSync(out); } catch {}
-        log(run, `👁 ${name} : ${c.src} ${c.id} refusé — ${j.species || "?"}${j.captive ? ", en captivité" : ""}${j.matches === false && !generic ? ", scène différente" : ""}`);
+        log(run, `👁 ${name} : ${c.src} ${c.id} refusé — ${j.species || "?"}${j.captive ? ", en captivité" : ""}${j.matches === false && !generic ? ", scène différente" : ""}${j.sharp === false ? ", flou / mal cadré" : ""}`);
       } catch (e) { rejected.add(c.id); try { fs.unlinkSync(raw); } catch {} log(run, `⚠ ${name} : ${c.id} — ${e.message.slice(0, 100)}`); }
     }
   }
   return null;
 }
-async function aiImage(run, prompt, file) {
-  const key = vault.get("kie"); if (!key) throw new Error("clé Kie absente");
-  const r = await fetch("https://api.kie.ai/api/v1/jobs/createTask", { method: "POST", headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" }, body: JSON.stringify({ model: "nano-banana-2-lite", input: { prompt, aspect_ratio: "16:9", resolution: "1K" } }) }).then((x) => x.json());
+async function kieTask(model, input, timeoutMs = 8 * 60 * 1000) {
+  const key = vault.get("kie"); if (!key) throw new Error("clé Kie absente (Paramètres → Coffre)");
+  const r = await fetch("https://api.kie.ai/api/v1/jobs/createTask", { method: "POST", headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" }, body: JSON.stringify({ model, input }) }).then((x) => x.json());
   const id = r.data?.taskId; if (!id) throw new Error("Kie : " + (r.msg || "refus"));
-  for (let t = 0; t < 40; t++) { await sleep(6000); const q = await fetch(`https://api.kie.ai/api/v1/jobs/recordInfo?taskId=${id}`, { headers: { Authorization: `Bearer ${key}` } }).then((x) => x.json()).catch(() => ({})); if (q.data?.state === "success") { const url = JSON.parse(q.data.resultJson).resultUrls[0]; fs.writeFileSync(file, Buffer.from(await (await fetch(url)).arrayBuffer())); addCost(run, "ai", PRICES.aiImage, "kie", "image IA"); return file; } if (q.data?.state === "fail") throw new Error("Kie : échec"); }
+  const t0 = Date.now();
+  while (Date.now() - t0 < timeoutMs) { await sleep(6000); checkCancel(); const q = await fetch(`https://api.kie.ai/api/v1/jobs/recordInfo?taskId=${id}`, { headers: { Authorization: `Bearer ${key}` } }).then((x) => x.json()).catch(() => ({})); if (q.data?.state === "success") return JSON.parse(q.data.resultJson).resultUrls[0]; if (q.data?.state === "fail") throw new Error("Kie : " + (q.data.failMsg || "échec")); }
   throw new Error("Kie : délai dépassé");
+}
+const AI_STYLE = "Photorealistic wildlife documentary still, National Geographic quality, natural light, rich detail, cinematic 16:9 composition, no text, no logo, no watermark, no frame.";
+async function aiImage(run, prompt, file) {
+  const url = await kieTask(KIE_IMG.t2i, { prompt: `${AI_STYLE} ${prompt} ${AI_STYLE}`, aspect_ratio: "16:9", resolution: "1K" });
+  fs.writeFileSync(file, Buffer.from(await (await fetch(url)).arrayBuffer())); addCost(run, "ai", PRICES.aiImage, "kie", "image IA");
+  return file;
+}
+async function uploadPublic(name, absFile, mime = "image/jpeg") {
+  const google = require("../google"); const up = await google.driveUpload(name, mime, fs.readFileSync(absFile));
+  await google.ensurePublic(up.id).catch(() => {});
+  return `https://drive.google.com/uc?export=download&id=${up.id}`;
+}
+/** Vidéo IA (option) : anime une image IA en 6 s (grok i2v 720p, sans parole) → .mp4 1280 px. */
+async function aiAnimate(run, imgFile, prompt, outFile) {
+  const url = await uploadPublic(`${run.id}-${path.basename(imgFile)}`, imgFile);
+  const v = await kieTask(KIE_VIDEO, { prompt: `Subtle natural documentary motion, slow camera push-in. ${prompt} No talking, no text, no new objects.`, image_urls: [url], duration: 6, resolution: "720p", aspect_ratio: "16:9" }, 12 * 60 * 1000);
+  const raw = outFile + ".raw"; fs.writeFileSync(raw, Buffer.from(await (await fetch(v)).arrayBuffer()));
+  require("child_process").execFileSync("ffmpeg", ["-v", "error", "-y", "-i", raw, "-an", "-vf", "scale=1280:-2,fps=30", "-c:v", "libx264", "-crf", "22", "-preset", "veryfast", "-pix_fmt", "yuv420p", outFile]); try { fs.unlinkSync(raw); } catch {}
+  addCost(run, "ai", PRICES.aiVideo, "kie", "vidéo IA");
+  return outFile;
 }
 async function stepBroll(run) {
   requireStockKey();
@@ -415,19 +456,45 @@ async function stepBroll(run) {
   const credits = jsonOf(path.join(bdir, "credits.json"), {});
   const used = new Set(Object.values(credits).map((c) => c.id));
   const srcs = run.params.sources || config().settings.sources;
+  // ouverture : un plan plein écran prévu sur la 1re réplique démarre dès le 1er mot (jamais 3 s de décor vide en accroche)
+  { const tl0 = jsonOf(path.join(dir, "timeline.json")); const l1 = tl0.lines[0]; const w1 = l1 && l1.words && l1.words[0] && String(l1.words[0].w).replace(/[^\p{L}\p{N}'’-]/gu, "");
+    const first = sb.beats.find((b) => b.type === "broll" && l1 && b.line === l1.id); if (first && w1) first.at = w1; }
+  // appel à l'action : jamais au milieu d'une vidéo courte (l'écran de fin le porte), jamais sur la réplique d'une carte « Question » (surcharge)
+  { const chapLines = new Set(sb.beats.filter((b) => b.type === "chapter").map((b) => b.line)); const n0 = sb.beats.length;
+    sb.beats = sb.beats.filter((b) => b.type !== "cta" || (run.params.durationMin > 2 && !chapLines.has(b.line))); if (sb.beats.length < n0) log(run, `✂ appel à l'action du milieu retiré (${run.params.durationMin <= 2 ? "vidéo courte" : "même réplique qu'une question"})`); }
   const names = [...new Set(sb.beats.filter((b) => b.type === "broll").map((b) => b.asset))];
   let ok = 0, ai = 0, dropped = 0; const rejected = new Set();
+  // 1) IMAGES IA en parallèle (4 à la fois) — un échec retombe sur la recherche d'un plan réel
+  const aiBeats = names.map((n) => sb.beats.find((b) => b.asset === n)).filter((b) => b.ai && run.params.aiImages && !fs.existsSync(path.join(bdir, `${b.asset}.jpg`)) && !fs.existsSync(path.join(bdir, `${b.asset}.mp4`)));
+  if (aiBeats.length) log(run, `🎨 ${aiBeats.length} image(s) IA plein écran (GPT Image 2.5, 1K)…`);
+  for (let i = 0; i < aiBeats.length; i += 4) {
+    await Promise.all(aiBeats.slice(i, i + 4).map(async (b) => {
+      try {
+        const img = await aiImage(run, b.ai, path.join(bdir, `${b.asset}.jpg`));
+        credits[b.asset] = { id: `ai-${b.asset}`, src: "ai", author: "", license: "image générée par IA", page: "", prompt: b.ai };
+        if (run.params.aiVideo) { try { await aiAnimate(run, img, b.ai, path.join(bdir, `${b.asset}.mp4`)); fs.renameSync(img, path.join(bdir, `${b.asset}-still.jpg`)); credits[b.asset].license = "vidéo générée par IA"; } catch (e) { log(run, `⚠ vidéo IA ${b.asset} : ${e.message.slice(0, 100)} — image fixe gardée`); } }
+        log(run, `🎨 ${b.asset} : image IA prête`);
+      } catch (e) { log(run, `⚠ image IA ${b.asset} : ${e.message.slice(0, 120)} → plan réel`); b.query = b.query || String(b.ai).split(/\s+/).slice(0, 5).join(" "); delete b.ai; }
+    }));
+  }
   for (const name of names) {
     checkCancel();
-    if (fs.existsSync(path.join(bdir, `${name}.mp4`)) || fs.existsSync(path.join(bdir, `${name}.jpg`))) { ok++; continue; }
+    if (fs.existsSync(path.join(bdir, `${name}.mp4`)) || fs.existsSync(path.join(bdir, `${name}.jpg`))) { if (credits[name]?.src === "ai") ai++; else ok++; continue; }
     const beat = sb.beats.find((b) => b.asset === name);
+    if (beat.hero === false) {
+      const qw2 = String(beat.query || name.replace(/_/g, " ")).split(/\s+/);
+      const got2 = await fetchVerified(run, name, [...new Set([qw2.join(" "), qw2.slice(0, 3).join(" "), qw2.slice(0, 2).join(" ")])], srcs, used, bdir, rejected, false);
+      if (got2) { const c = got2.c; credits[name] = { id: c.id, src: c.src, author: c.author, license: c.license, page: c.page, seen: got2.seen }; used.add(c.id); ok++; log(run, `🎞 ${name} ← ${c.src} (${c.id}) « ${got2.q} » ✓ vu : ${got2.seen}`); continue; }
+      if (run.params.aiImages) { try { await aiImage(run, beat.query, path.join(bdir, `${name}.jpg`)); credits[name] = { id: `ai-${name}`, src: "ai", author: "", license: "image générée par IA", page: "", prompt: beat.query }; ai++; continue; } catch (e) { log(run, `⚠ image IA : ${e.message}`); } }
+      sb.beats = sb.beats.filter((b) => b.asset !== name); dropped++; log(run, `↷ ${name} : aucun plan libre (« ${beat.query} ») — beat retiré`); continue;
+    }
     const q = beat.query || `${SPECIES_NAME(run)} ${name.replace(/_/g, " ")}`;
     const sp = SPECIES_NAME(run); const qw = q.split(/\s+/);
     const tries = [q, qw.slice(0, 3).join(" "), `${sp} ${qw.find((w) => /ing$/.test(w)) || ""}`.trim(), sp, sp.split(" ").pop()];
     const got = await fetchVerified(run, name, [...new Set(tries)], srcs, used, bdir, rejected);
     if (got) { const c = got.c; credits[name] = { id: c.id, src: c.src, author: c.author, license: c.license, page: c.page, seen: got.seen }; used.add(c.id); ok++; log(run, `🎞 ${name} ← ${c.src} (${c.id}) « ${got.q} » ✓ vu : ${got.seen}`); continue; }
     if (run.params.aiImages) {
-      try { await aiImage(run, `Paper cut-out documentary illustration, ${q}, flat layered paper shapes, soft paper texture, natural colors, 16:9, no text, no logo`, path.join(bdir, `${name}.jpg`)); credits[name] = { id: `ai-${name}`, src: "ai", author: "", license: "illustration IA", page: "" }; ai++; continue; } catch (e) { log(run, `⚠ image IA : ${e.message}`); }
+      try { await aiImage(run, `${SPECIES_NAME(run)}, ${q}, in its natural habitat`, path.join(bdir, `${name}.jpg`)); credits[name] = { id: `ai-${name}`, src: "ai", author: "", license: "image générée par IA", page: "", prompt: q }; ai++; continue; } catch (e) { log(run, `⚠ image IA : ${e.message}`); }
     }
     sb.beats = sb.beats.filter((b) => b.asset !== name); dropped++;
     log(run, `↷ ${name} : aucun plan libre (« ${q} ») — beat retiré`);
@@ -437,7 +504,7 @@ async function stepBroll(run) {
   stageRun(run);
   let chk = await d2check(run);
   // COMPLÉMENT : sous la cible (−2 pts), on ajoute des plans sur les répliques SANS carte (le monde y est seul), du milieu vers les bords
-  if (chk.realPct < run.params.realPct - 2) {
+  if (chk.realPct + (chk.aiPct || 0) < run.params.realPct - 2) {
     const tl = jsonOf(path.join(dir, "timeline.json"));
     const CARD = new Set(["title", "toc", "chapter", "bignum", "compare", "bars", "broll", "photo", "map", "anatomy", "quiz", "timeline", "quote", "icons", "outro", "cta"]);
     const busy = new Set(sb.beats.filter((b) => CARD.has(b.type)).map((b) => b.line));
@@ -445,7 +512,7 @@ async function stepBroll(run) {
     const sp = SPECIES_NAME(run); const kinds = ["close up", "walking", "herd", "water", "eating", "resting", "running"];
     let k = 0;
     for (const l of free) {
-      if (chk.realPct + (100 * k * 4.5) / tl.total >= run.params.realPct) break;
+      if (chk.realPct + (chk.aiPct || 0) + (100 * k * 4.5) / tl.total >= run.params.realPct) break;
       const name = `extra_${k + 1}`; const q = `${sp} ${kinds[k % kinds.length]}`;
       const got = await fetchVerified(run, name, [q, sp], srcs, used, bdir, rejected); if (!got) break; const c = got.c;
       try {
@@ -457,20 +524,25 @@ async function stepBroll(run) {
     if (k) { fs.writeFileSync(path.join(bdir, "credits.json"), JSON.stringify(credits, null, 1)); fs.writeFileSync(path.join(dir, "storyboard.json"), JSON.stringify(sb, null, 1)); stageRun(run); chk = await d2check(run); }
   }
   // toujours sous la cible : chaque plan réel est PROLONGÉ sur la réplique suivante (il s'arrête à la carte suivante, exclusivité oblige)
-  if (chk.realPct < run.params.realPct - 2) {
+  if (chk.realPct + (chk.aiPct || 0) < run.params.realPct - 2) {
     const tl2 = jsonOf(path.join(dir, "timeline.json")); let ext = 0;
     for (const b of sb.beats.filter((x) => x.type === "broll" && !x.until && !x.untilLine)) { const i = tl2.lines.findIndex((l) => l.id === b.line); if (i >= 0 && i < tl2.lines.length - 2) { b.untilLine = tl2.lines[i + 1].id; ext++; } }
-    if (ext) { fs.writeFileSync(path.join(dir, "storyboard.json"), JSON.stringify(sb, null, 1)); stageRun(run); const c2 = await d2check(run); if (!(c2.anomalies || []).length) { chk = c2; log(run, `⤳ ${ext} plan(s) réel(s) prolongé(s) → ${chk.realPct} %`); } }
+    if (ext) { fs.writeFileSync(path.join(dir, "storyboard.json"), JSON.stringify(sb, null, 1)); stageRun(run); const c2 = await d2check(run); if (!(c2.anomalies || []).length) { chk = c2; log(run, `⤳ ${ext} plan(s) prolongé(s) → ${(chk.realPct + (chk.aiPct || 0)).toFixed(1)} %`); } }
   }
-  run.check = { anomalies: chk.anomalies || [], realPct: chk.realPct, cardPct: chk.cardPct, target: run.params.realPct };
-  log(run, `✅ Plans réels : ${ok}${ai ? ` + ${ai} illustration(s) IA` : ""}${dropped ? ` · ${dropped} sans plan` : ""} · part réelle mesurée ${chk.realPct} % (cible ${run.params.realPct} %) · ${run.check.anomalies.length} anomalie(s)`);
-  if (run.check.anomalies.some((i) => i.rule !== "variété")) { const tl4 = jsonOf(path.join(dir, "timeline.json")); const nfix = autoFix(sb, tl4, run.check.anomalies); if (nfix) { fs.writeFileSync(path.join(dir, "storyboard.json"), JSON.stringify(sb, null, 1)); stageRun(run); const c4 = await d2check(run); run.check = { anomalies: c4.anomalies || [], realPct: c4.realPct, cardPct: c4.cardPct, target: run.params.realPct }; log(run, `🔧 Réparation automatique : ${nfix} correction(s) → ${run.check.anomalies.length} anomalie(s)`); } }
+  run.check = { anomalies: chk.anomalies || [], realPct: chk.realPct, aiPct: chk.aiPct || 0, cardPct: chk.cardPct, target: run.params.realPct, nReal: ok, nAi: ai };
+  log(run, `✅ Plein écran : ${ok} plan(s) réel(s)${ai ? ` + ${ai} image(s) IA` : ""}${dropped ? ` · ${dropped} sans plan` : ""} · mesuré ${(chk.realPct + (chk.aiPct || 0)).toFixed(1)} % (réel ${chk.realPct} % · IA ${chk.aiPct || 0} %) pour une cible de ${run.params.realPct} % · ${run.check.anomalies.length} anomalie(s)`);
+  if (run.check.anomalies.some((i) => i.rule !== "variété")) { const tl4 = jsonOf(path.join(dir, "timeline.json")); const nfix = autoFix(sb, tl4, run.check.anomalies); if (nfix) { fs.writeFileSync(path.join(dir, "storyboard.json"), JSON.stringify(sb, null, 1)); stageRun(run); const c4 = await d2check(run); run.check = { ...run.check, anomalies: c4.anomalies || [], realPct: c4.realPct, aiPct: c4.aiPct || 0, cardPct: c4.cardPct }; log(run, `🔧 Réparation automatique : ${nfix} correction(s) → ${run.check.anomalies.length} anomalie(s)`); } }
   run.check.warnings = run.check.anomalies.filter((i) => i.rule === "variété"); run.check.anomalies = run.check.anomalies.filter((i) => i.rule !== "variété");
   if (run.check.warnings.length) log(run, `⚠ variété : ${run.check.warnings.map((i) => i.msg).join(" · ")}`);
   if (run.check.anomalies.length) throw new Error(`vérificateur : ${run.check.anomalies.length} anomalie(s) — ${run.check.anomalies.slice(0, 3).map((i) => i.msg).join(" · ")}`);
-  // planche de relecture (24 images) pour la validation semi-manuelle
+  // inventaire des plans plein écran (affiché à l'étape « Plans » : on voit chaque plan, sa source, ce que la vision y a vu)
+  run.media = Object.entries(credits).filter(([k]) => sb.beats.some((b) => b.asset === k)).map(([k, c]) => { const vid = fs.existsSync(path.join(bdir, `${k}.mp4`)); const bt = sb.beats.find((b) => b.asset === k) || {};
+    return { name: k, src: c.src, kind: vid ? "video" : "image", rel: `agent-os/output/machines/${run.id}/broll/${k}.${vid ? "mp4" : "jpg"}`, seen: c.seen || "", prompt: c.prompt || bt.query || "", line: bt.line }; });
+  // planche de relecture (1 image / 3 s) pour la validation semi-manuelle
   try { await npx(["remotion", "bundle", "src/docu2d.tsx", "--public-dir", `"${path.join(PUB_DIR, run.id)}"`, "--out-dir", `"build-d2-${run.id}"`, "--log=error"]); run.bundle = `build-d2-${run.id}`;
-    await npx(["node", "scripts/d2-stills.mjs", `"${path.join(PUB_DIR, run.id, "props.json")}"`, `"${path.join(dir, "planche")}"`, "--n", "24", "--scale", "0.5", "--bundle", run.bundle]);
+    try { fs.rmSync(path.join(dir, "planche"), { recursive: true, force: true }); } catch {} // une reprise ne mélange jamais d'anciennes vignettes
+    await npx(["node", "scripts/d2-stills.mjs", `"${path.join(PUB_DIR, run.id, "props.json")}"`, `"${path.join(dir, "planche")}"`, "--n", String(Math.min(60, Math.max(12, Math.round(jsonOf(path.join(dir, "timeline.json")).total / 3)))), "--scale", "0.5", "--bundle", run.bundle]);
+    run.stills = fs.readdirSync(path.join(dir, "planche")).filter((f) => /\.(jpe?g|png)$/.test(f) && !f.startsWith("sheet-")).sort().map((f) => `agent-os/output/machines/${run.id}/planche/${f}`);
     run.sheets = fs.readdirSync(path.join(dir, "planche")).filter((f) => f.startsWith("sheet-")).map((f) => `agent-os/output/machines/${run.id}/planche/${f}`);
   } catch (e) { log(run, "planche : " + e.message.slice(0, 200)); }
 }
@@ -518,30 +590,49 @@ function nicheTitles(limit = 40) {
   if (!out.length) try { out.push(...require("./docu2d-niche.json").titles); } catch {}
   return out.sort((a, b) => b.views - a.views).slice(0, limit);
 }
+function nicheInfo() {
+  try { const bank = require("../bank"); const n = bank.niches().find((x) => NICHE_NAME.test(x.name || "")); if (!n) return null; return { id: n.id, s: bank.summary(n.id) }; } catch { return null; }
+}
+/** Miniatures concurrentes les plus vues (fichiers du scraping) : références de STYLE de la nôtre (code Depth Theory / Squidium). */
+function topCompetitorThumbFiles(n = 2) {
+  const ni = nicheInfo(); if (!ni) return [];
+  const scrap = require("../scrap"); const out = [];
+  for (const v of ni.s.topVideos) { for (const ch of ni.s.channels) for (const rel of scrap.channelThumbs(ch.channelId)) if (rel.endsWith(`-${v.videoId}.jpg`)) out.push(path.join(ROOT, rel)); if (out.length >= n) break; }
+  return out.slice(0, n);
+}
+/** Sources = NOMS DE SITES seulement (pas de liens, consigne d'Alex du 27/11) : faits + plans réels + images IA. */
 function descriptionBlocks(run) {
   const dir = runDir(run); const L = run.params.lang === "fr";
   const tl = jsonOf(path.join(dir, "timeline.json")); const sb = jsonOf(path.join(dir, "storyboard.json"));
   const credits = jsonOf(path.join(dir, "broll", "credits.json"), {});
   const lineStart = (id) => (tl.lines.find((l) => l.id === id) || {}).start || 0;
   const chapters = [{ t: 0, label: L ? "Introduction" : "Intro" }];
-  for (const b of sb.beats.filter((x) => x.type === "chapter")) { const t = Math.floor(lineStart(b.line)); if (t - chapters[chapters.length - 1].t >= 10) chapters.push({ t, label: `${L ? "Question" : "Question"} ${b.n} · ${(sb.chapters[b.n - 1] || {}).title || ""}` }); }
-  const facts = [...new Map((run.facts || []).filter((f) => f.src).map((f) => [f.src, f])).keys()];
-  const imgs = Object.values(credits).map((c) => c.src === "ai" ? (L ? "Illustration générée par IA" : "AI-generated illustration") : `${c.src === "pexels" ? "Pexels" : c.src === "pixabay" ? "Pixabay" : c.src === "commons" ? "Wikimedia Commons" : c.src}${c.author ? ` — ${c.author}` : ""}${c.license ? ` (${c.license})` : ""}${c.page ? ` ${c.page}` : ""}`);
-  const fair = Object.values(credits).some((c) => c.src === "fairuse");
-  return { chapters: chapters.map((c) => `${mmss(c.t)} ${c.label}`), facts, imgs: [...new Set(imgs)], fair, L };
+  for (const b of sb.beats.filter((x) => x.type === "chapter")) { const t = Math.floor(lineStart(b.line)); if (t - chapters[chapters.length - 1].t >= 10) chapters.push({ t, label: `Question ${b.n} · ${(sb.chapters[b.n - 1] || {}).title || ""}` }); }
+  const used = new Set(sb.beats.filter((b) => b.type === "broll").map((b) => b.asset));
+  const srcName = { pexels: "Pexels", pixabay: "Pixabay", commons: "Wikimedia Commons", archive: "Internet Archive", nasa: "NASA", usfws: "U.S. Fish & Wildlife Service" };
+  const sites = new Set();
+  if ((run.facts || []).some((f) => /wikipedia/i.test(f.src || "")) || (run.sources || []).length) sites.add(L ? "Wikipédia" : "Wikipedia");
+  for (const [k, c] of Object.entries(credits)) if (used.has(k) && c.src !== "ai") sites.add(srcName[c.src] || c.src);
+  const ai = Object.entries(credits).some(([k, c]) => used.has(k) && c.src === "ai");
+  return { chapters: chapters.map((c) => `${mmss(c.t)} ${c.label}`), sites: [...sites], ai, L };
 }
 async function stepPackage(run) {
   const B = descriptionBlocks(run);
   const lang = LANGS[run.params.lang] || run.params.lang;
+  const ni = nicheInfo(); const nicheTags = ni ? (ni.s.topTags || []).slice(0, 60) : [];
   const p = await askJson([
-    `Packaging YouTube (${lang}) d'un documentaire animalier papier découpé. Titre de travail : « ${run.script.title} ». Sujet : ${run.params.subject}. Angle : ${run.meta.angle}.`,
-    "- title : formule de la niche, 45-80 caractères, sans emoji ni majuscules criardes (« Pourquoi [créature] [paradoxe] », « Le [animal] le plus [x] du monde », « J'ai lâché [créature] dans [N] [mondes] ») ;",
+    `Packaging YouTube (${lang}) d'un documentaire animalier. Titre de travail : « ${run.script.title} ». Sujet : ${run.params.subject}. Angle : ${run.meta.angle}.`,
+    "- title : formule de la niche, 45-80 caractères, sans emoji ni majuscules criardes (« Pourquoi vous ne voudriez jamais croiser [animal] », « Pourquoi [créature] [paradoxe] », « Le [animal] le plus [x] du monde ») ;",
     "- hook : 2 phrases de description qui donnent envie, UNIQUEMENT avec des faits du registre (aucun superlatif ni record absent du registre) ;",
-    "- tags : 18-28 tags du plus précis au plus large ; - thumbText : 2 ou 3 mots MAX en majuscules pour la miniature ; - titleAlt : 2 titres alternatifs.",
+    `- tags : 20-30 tags de RECHERCHE (ce que les gens tapent sur YouTube), du plus précis au plus large, en ${lang} d'abord puis quelques-uns en anglais : nom de l'animal et ses variantes, nom scientifique, « [animal] dangereux », « [animal] attaque », « documentaire animalier », « animaux dangereux », « faune africaine »… JAMAIS de mots techniques de fabrication (papier découpé, animation, motion design, IA) ni de tags hors sujet. Inspire-toi du vocabulaire des tags de la niche ;`,
+    "- thumbText : 2 à 4 mots MAX, à la 2e personne, qui créent la peur ou la curiosité (codes : « IT HEARS YOU.. », « NOT SMILING AT YOU.. ») ; entoure d'astérisques le mot à mettre en ROUGE (un seul), ex. « IL VOUS *VOIT*.. » ; dans la langue de la vidéo ;",
+    "- thumbScene : en ANGLAIS, la scène de la miniature : l'animal du sujet ÉNORME à droite (tête ou corps en gros plan, menaçant, détail anatomique fidèle à l'espèce), et à gauche un humain MINUSCULE en situation (pirogue, safari, plongeur, randonneur selon l'habitat) ; 40-80 mots ;",
+    "- titleAlt : 2 titres alternatifs.",
     `FAITS DE LA VIDÉO : ${JSON.stringify((run.facts || []).slice(0, 25).map((f) => f.claim))}`,
     `TITRES QUI MARCHENT DANS LA NICHE (codes à réutiliser, jamais copier) : ${JSON.stringify(nicheTitles(30).map((v) => `${v.title} (${v.views})`))}`,
-    'JSON UNIQUEMENT : {"title":"","hook":"","tags":[""],"thumbText":"","titleAlt":["",""]}',
-  ].join("\n"), "Packaging");
+    nicheTags.length ? `TAGS DE LA NICHE (vocabulaire) : ${JSON.stringify(nicheTags)}` : "",
+    'JSON UNIQUEMENT : {"title":"","hook":"","tags":[""],"thumbText":"","thumbScene":"","titleAlt":["",""]}',
+  ].filter(Boolean).join("\n"), "Packaging");
   // RELECTURE : la description et le titre ne contiennent QUE des faits du registre (vécu : « l'animal qui tue le plus d'humains du continent », inventé)
   try {
     const rv = await askJson([
@@ -554,20 +645,51 @@ async function stepPackage(run) {
   } catch (e) { log(run, "relecture packaging : " + e.message.slice(0, 100)); }
   addCost(run, "llm", 0.01, "openrouter", "packaging");
   const brand = config().settings.brand;
-  const desc = [p.hook || "", "", B.L ? "Chapitres" : "Chapters", ...B.chapters, "", B.L ? "Sources des faits" : "Fact sources", ...B.facts.map((u) => `• ${u}`),
-    "", B.L ? "Sources des images" : "Image sources", ...B.imgs.map((x) => `• ${x}`), B.L ? "Les animaux des plans d'illustration ne sont pas forcément ceux de l'histoire racontée." : "Illustration footage may show other individuals than the ones in the story.",
-    ...(B.fair ? ["", FAIR_USE[run.params.lang] || FAIR_USE.en] : []),
-    "", `${B.L ? "Animation, voix et musique" : "Animation, voice and music"} : ${brand}.`].join("\n");
-  run.pack = { title: String(p.title || run.script.title).replace(/["«»]/g, "").slice(0, 100), titleAlt: p.titleAlt || [], description: desc, tags: capTags(p.tags || []), thumbText: String(p.thumbText || "").slice(0, 30), chapters: B.chapters,
-    thumbRel: run.thumb ? `agent-os/output/machines/${run.id}/thumb.png` : null, thumbTs: Date.now() };
-  // miniature : l'espèce gueule ouverte + 2-3 mots (après le packaging, qui fournit le texte)
-  try { const th = path.join(runDir(run), "thumb.png"); const pf = path.join(PUB_DIR, run.id, "thumb-props.json"); fs.writeFileSync(pf, JSON.stringify({ ...jsonOf(path.join(PUB_DIR, run.id, "props.json")), thumbText: run.pack.thumbText }));
-    await npx(["remotion", "still", run.bundle, "Docu2DThumb", `"${th}"`, `--props="${pf}"`]); run.pack.thumbRel = `agent-os/output/machines/${run.id}/thumb.png`; run.pack.thumbTs = Date.now(); } catch (e) { log(run, "miniature : " + e.message.slice(0, 160)); }
+  const L = B.L;
+  const desc = [p.hook || "", "", L ? "Chapitres" : "Chapters", ...B.chapters, "",
+    `Sources : ${B.sites.join(", ")}${B.ai ? (L ? ". Certaines images sont des illustrations générées par IA." : ". Some images are AI-generated illustrations.") : "."}`,
+    "", FAIR_USE[run.params.lang] || FAIR_USE.en,
+    "", `${L ? "Animation, voix et musique" : "Animation, voice and music"} : ${brand}.`].join("\n");
+  run.pack = { title: String(p.title || run.script.title).replace(/["«»]/g, "").slice(0, 100), titleAlt: p.titleAlt || [], description: desc, tags: capTags(p.tags || [], 495), thumbText: String(p.thumbText || "").slice(0, 40), thumbScene: String(p.thumbScene || ""), chapters: B.chapters, thumbRel: null, thumbTs: Date.now() };
+  try { await makeThumbnail(run); } catch (e) { log(run, "⚠ miniature : " + e.message.slice(0, 160)); }
   run.finalRel = run.output.rel;
   fs.writeFileSync(path.join(runDir(run), "youtube.txt"), `${run.pack.title}\n\n${run.pack.description}\n\nTAGS: ${run.pack.tags.join(", ")}\n`);
   addToStock(run);
-  log(run, "📦 Packaging prêt (titre, description : chapitres + sources des faits et des images, tags) — vidéo ajoutée au stock");
+  log(run, "📦 Packaging prêt (titre, description : chapitres + sources + fair use, tags, miniature IA) — vidéo ajoutée au stock");
   if (run.params.publishChannelId) { try { const pub = await publishRun(run.id, {}, run); log(run, `📤 Publiée : ${pub.url} (${pub.privacyStatus})`); } catch (e) { log(run, "⚠ Publication échouée : " + e.message); } }
+}
+/** Miniature IA au code de la niche : GPT Image 2.5 i2i avec les 2 miniatures concurrentes les plus vues en RÉFÉRENCES DE STYLE
+ *  (gravure noir et blanc, animal énorme à droite, humain minuscule à gauche, flèche rouge, fond noir), puis texte posé par
+ *  Remotion (net, accents justes) : blanc, le mot entre *astérisques* en rouge. */
+async function makeThumbnail(run, { text, scene } = {}) {
+  const dir = runDir(run); if (text !== undefined) run.pack.thumbText = String(text).slice(0, 40); if (scene) run.pack.thumbScene = scene;
+  const bgFile = path.join(dir, "thumb-bg.png"); const sp = SPECIES_NAME(run);
+  if (scene || !fs.existsSync(bgFile)) {
+    const refs = []; for (const f of topCompetitorThumbFiles(2)) { try { refs.push(await uploadPublic(`${run.id}-thumbref-${refs.length}.jpg`, f)); } catch (e) { log(run, "réf. miniature : " + e.message.slice(0, 80)); } }
+    const prompt = [
+      refs.length ? `STYLE REFERENCES ATTACHED: ${refs.length} YouTube thumbnails from the same channel family. Reproduce their exact visual identity — indistinguishable from the same artist: pitch-black background with faint stars/particles, the animal drawn as a hyper-detailed black-and-white scratchboard / engraving illustration with fine white hatching, huge and close on the RIGHT half, a TINY human on the LEFT in white line art, concentric sound/sense rings between them, one bold red hand-drawn arrow pointing at the tiny human. Draw a NEW scene for this subject, do not copy their content.` : "Pitch-black background, hyper-detailed black-and-white scratchboard engraving illustration, animal huge on the right, tiny human on the left, one red arrow pointing at the human.",
+      `SUBJECT: ${sp} (${run.params.subject}) — anatomically exact for this species. ${run.pack.thumbScene || ""}`,
+      "Leave the TOP-LEFT 55 % x 40 % area completely empty black (text will be added later). Absolutely NO text, no letters, no logo in the image. 16:9.",
+    ].join("\n\n");
+    const input = { prompt, aspect_ratio: "16:9", resolution: "1K" }; if (refs.length) input[KIE_IMG.field] = refs;
+    const url = await kieTask(refs.length ? KIE_IMG.i2i : KIE_IMG.t2i, input);
+    fs.writeFileSync(bgFile, Buffer.from(await (await fetch(url)).arrayBuffer())); addCost(run, "ai", PRICES.thumb, "kie", "miniature IA");
+  }
+  // texte posé par Remotion (composition Docu2DThumb, mode image)
+  const pub = path.join(PUB_DIR, run.id); ensureDir(pub); fs.copyFileSync(bgFile, path.join(pub, "thumb-bg.png"));
+  const pf = path.join(pub, "thumb-props.json"); fs.writeFileSync(pf, JSON.stringify({ ...jsonOf(path.join(pub, "props.json")), root: "", thumbBg: "thumb-bg.png", thumbText: run.pack.thumbText }));
+  const th = path.join(dir, "thumb.png");
+  if (!run.bundle || !fs.existsSync(path.join(REMOTION_DIR, run.bundle))) { await npx(["remotion", "bundle", "src/docu2d.tsx", "--public-dir", `"${pub}"`, "--out-dir", `"build-d2-${run.id}"`, "--log=error"]); run.bundle = `build-d2-${run.id}`; }
+  // le bundle a figé son dossier public : on y copie le fond (sinon 404 sur thumb-bg.png)
+  try { fs.copyFileSync(bgFile, path.join(REMOTION_DIR, run.bundle, "public", "thumb-bg.png")); } catch {}
+  await npx(["remotion", "still", run.bundle, "Docu2DThumb", `"${th}"`, `--props="${pf}"`, "--scale=0.6667"]);
+  run.pack.thumbRel = `agent-os/output/machines/${run.id}/thumb.png`; run.pack.thumbTs = Date.now();
+  return run.pack;
+}
+async function regenThumbnail(runId, { text, scene } = {}) {
+  const run = getRun(runId); if (!run || !run.pack) throw new Error("Pas encore de packaging");
+  await runScope.run(runId, () => makeThumbnail(run, { text, scene: scene || undefined }));
+  saveRun(run); syncStock(run); return run.pack;
 }
 function saveTexts(runId, { title, description, tags } = {}) { const run = getRun(runId); if (!run || !run.pack) throw new Error("Pas encore de packaging"); if (title !== undefined) run.pack.title = String(title).slice(0, 100); if (description !== undefined) run.pack.description = String(description); if (tags !== undefined) run.pack.tags = capTags(tags); saveRun(run); syncStock(run); return run.pack; }
 
@@ -612,8 +734,8 @@ function createRun({ subject, family, durationMin, lang, voice: v, voiceId, real
   const s = config().settings;
   const id = "d2" + Date.now().toString(36);
   const run = { id, machineId: MACHINE_ID, createdAt: new Date().toISOString(), status: "created", title: String(subject).trim(),
-    params: { subject: String(subject).trim(), family: family || "auto", durationMin: Math.max(3, Math.min(30, Number(durationMin) || s.durationMin)), lang: LANGS[lang] ? lang : s.lang,
-      voice: String(voiceId || v || s.voice).trim(), realPct: Math.max(0, Math.min(60, Number(realPct ?? s.realPct))), aiImages: !!(aiImages ?? s.aiImages), aiVideo: !!(aiVideo ?? s.aiVideo),
+    params: { subject: String(subject).trim(), family: family || "auto", durationMin: Math.max(1, Math.min(30, Number(durationMin) || s.durationMin)), lang: LANGS[lang] ? lang : s.lang,
+      voice: String(voiceId || v || s.voice).trim(), realPct: Math.max(0, Math.min(80, Number(realPct ?? s.realPct))), aiImages: !!(aiImages ?? s.aiImages), aiVideo: !!(aiVideo ?? s.aiVideo),
       sources: Array.isArray(sources) && sources.length ? sources : s.sources, music: music ?? s.music, musicVolume: musicVolume ?? s.musicVolume,
       mode: mode === "auto" ? "auto" : "semi", publishChannelId: publishChannelId || null, publishPrivacy: publishPrivacy || s.publishPrivacy },
     cost: {}, log: [], validated: {} };
@@ -682,7 +804,7 @@ function strandedRuns() { return listRuns().filter((r) => /_running$/.test(r.sta
 function resumeRun(runId) { return start(runId); }
 function summary(r) {
   return { id: r.id, createdAt: r.createdAt, status: r.status, error: r.error, subject: r.params.subject, title: (r.pack && r.pack.title) || (r.script && r.script.title) || r.params.subject, durationMin: r.params.durationMin,
-    mode: r.params.mode, seconds: r.output && r.output.seconds, realPct: r.check && r.check.realPct, cost: +Object.values(r.cost || {}).reduce((a, b) => a + b, 0).toFixed(2), running: live.has(r.id) && !cancelled.has(r.id),
+    mode: r.params.mode, seconds: r.output && r.output.seconds, realPct: r.check && +((r.check.realPct || 0) + (r.check.aiPct || 0)).toFixed(1), cost: +Object.values(r.cost || {}).reduce((a, b) => a + b, 0).toFixed(2), running: live.has(r.id) && !cancelled.has(r.id),
     published: r.published || null, thumb: r.pack && r.pack.thumbRel, last: (r.log || []).slice(-1)[0] };
 }
 function start(runId, from) {
@@ -737,12 +859,16 @@ async function suggestTopics(n = 6, family = "auto") {
   ].join("\n"), "Idées");
   return j.ideas || [];
 }
-function estimate({ durationMin = 10, voice: v, aiImages, music = true } = {}) {
-  const s = config().settings;
-  const chars = Math.round(Number(durationMin) * 60 * 0.85 * speechWpm(v || s.voice, s) / 60 * 5.9);
+/** Devis : voix (caractères estimés × débit mesuré de la voix) + musique Suno + texte (LLM) + vision (contrôle de chaque plan)
+ *  + images IA (≈ 1/3 des plans plein écran) + vidéos IA (1 par image IA) + miniature IA. Même formule que le storyboard. */
+function estimate({ durationMin = 10, voice: v, aiImages, aiVideo, music = true, realPct } = {}) {
+  const s = config().settings; const sec = Number(durationMin) * 60; const pct = Number(realPct ?? s.realPct);
+  const chars = Math.round(sec * 0.85 * speechWpm(v || s.voice, s) / 60 * 5.9);
   const voiceUsd = (chars / 1000) * PRICES.elevenPer1kChars;
-  const total = voiceUsd + (music ? PRICES.music : 0) + PRICES.llm + (aiImages ? 3 * PRICES.aiImage : 0);
-  return { chars, usd: +total.toFixed(2), detail: { voice: +voiceUsd.toFixed(2), music: music ? PRICES.music : 0, llm: PRICES.llm, ai: aiImages ? 3 * PRICES.aiImage : 0 }, wpm: speechWpm(v || s.voice, s), renderMin: Math.round(Number(durationMin) * 4.5) }; // mesuré : hippopotame 10 min → ≈ 50 min de rendu (6 en parallèle, PC chargé)
+  const nFull = Math.max(3, Math.ceil((sec * pct / 100) / 5.5)); const nAi = aiImages ? Math.max(1, Math.round(nFull / 3)) : 0;
+  const d = { voice: +voiceUsd.toFixed(2), music: music ? PRICES.music : 0, llm: PRICES.llm, vision: +((nFull - nAi) * 2.5 * PRICES.vision).toFixed(2), aiImages: +(nAi * PRICES.aiImage).toFixed(2), aiVideo: aiVideo && nAi ? +(nAi * PRICES.aiVideo).toFixed(2) : 0, thumb: PRICES.thumb };
+  const total = Object.values(d).reduce((a, b) => a + b, 0);
+  return { chars, usd: +total.toFixed(2), detail: d, nFull, nAi, wpm: speechWpm(v || s.voice, s), renderMin: Math.max(3, Math.round(Number(durationMin) * 4.5)) }; // mesuré : 10 min → ≈ 45-50 min de rendu
 }
 async function suggestThemes(count = 1) { const ideas = await suggestTopics(Math.min(Math.max(Number(count) || 1, 1), 8)); return ideas.map((i) => ({ title: i.title, text: i.subject, pitch: i.why })); }
 async function orderRun({ publishChannelId, publishPrivacy, publish, overrides, theme } = {}) {
@@ -755,5 +881,5 @@ async function orderRun({ publishChannelId, publishPrivacy, publish, overrides, 
 module.exports = {
   MACHINE_ID, MACHINE_NAME, DEFAULTS, LANGS, ELEVEN_VOICES, SPECIES_OK, config, patchConfig, listRuns, getRun, saveRun, createRun, advance, resetFrom, sweepRuns, strandedRuns,
   suggestTopics, suggestThemes, orderRun, estimate, summary, start, resumeRun, validate, cancelRun, isLive: (id) => live.has(id), stockKeys, voices, descriptionBlocks,
-  stock, patchStock, publishRun, saveTexts, bestiary, renderBestiary,
+  stock, patchStock, publishRun, saveTexts, regenThumbnail, bestiary, renderBestiary,
 };

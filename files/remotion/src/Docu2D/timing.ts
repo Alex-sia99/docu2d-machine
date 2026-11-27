@@ -78,11 +78,13 @@ export const resolve = (sb: Storyboard, tl: Timeline): { beats: Resolved[]; issu
   const out: Resolved[] = [];
   sb.beats.forEach((b, i) => {
     try {
-      const t0 = wordTime(tl, b.line, b.at) - (b.type === "tag" ? 0.05 : 0.12);
+      let t0 = wordTime(tl, b.line, b.at) - (b.type === "tag" ? 0.05 : 0.12);
+      if (b.type === "broll" && tl.lines[0] && b.line === tl.lines[0].id && t0 < 1.2) t0 = 0; // ouverture plein écran dès la 1re image
       let t1: number;
       if (b.until) t1 = wordTime(tl, b.untilLine || b.line, b.until, true) + 0.25;
       else if (b.untilLine) t1 = lineEnd(tl, b.untilLine) + 0.3;
       else t1 = lineEnd(tl, b.line) + 0.3;
+      if (b.type === "end") t1 = Math.max(t1, tl.total + 2); // l'écran de fin tient jusqu'à la dernière image (jamais de décor vide après la voix)
       // sous-éléments ancrés (sommaire, icônes, frise, labels d'anatomie, barres)
       const anchorList = (arr?: any[]) => (arr || []).forEach((it: any) => { if (it && typeof it === "object") it._t = it.at ? wordTime(tl, it.line || b.line, it.at) - 0.05 : t0 + 0.3; });
       anchorList(b.items); anchorList(b.labels); anchorList(b.events); anchorList(b.pins);

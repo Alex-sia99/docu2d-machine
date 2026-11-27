@@ -52,6 +52,16 @@ function mix(runDir, video, out, { music = [], mvol = 0.14, lufs = -14, tail = 2
   return { lufs: I2, total };
 }
 
+/** Voix complète (répliques placées sur la timeline) en mp3 : écoute dans l'interface, étape Voix. */
+function voiceFull(runDir, outFile) {
+  const tl = JSON.parse(fs.readFileSync(path.join(runDir, "timeline.json"), "utf8"));
+  const a = ["-v", "error", "-y"]; const f = [];
+  tl.lines.forEach((l, i) => { a.push("-i", path.join(runDir, l.file)); const ms = Math.round(l.start * 1000); f.push(`[${i}:a]aresample=48000,adelay=${ms}|${ms}[v${i}]`); });
+  f.push(`${tl.lines.map((_, i) => `[v${i}]`).join("")}amix=inputs=${tl.lines.length}:normalize=0:dropout_transition=0[vo]`);
+  a.push("-filter_complex", f.join(";"), "-map", "[vo]", "-ac", "2", "-b:a", "128k", outFile); execFileSync("ffmpeg", a);
+  return outFile;
+}
+
 /** Contrôle d'écoute : transcrit 3 extraits (début, milieu, fin) avec faster-whisper (CPU) et compare au script. */
 function listenCheck(out, runDir, lang = "fr") {
   const tl = JSON.parse(fs.readFileSync(path.join(runDir, "timeline.json"), "utf8"));
@@ -66,4 +76,4 @@ function listenCheck(out, runDir, lang = "fr") {
   const ok = checks.every((c) => c.match >= 0.5);
   return { ok, checks };
 }
-module.exports = { mix, listenCheck, musicBed };
+module.exports = { mix, listenCheck, musicBed, voiceFull };

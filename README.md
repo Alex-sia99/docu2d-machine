@@ -1,8 +1,8 @@
 # Machine « Docu Papier 2D » pour Agent OS
 
-Une usine à **documentaires animaliers en papier découpé**, dans le style des chaînes Oceanverse et Depth Theory : une accroche à la deuxième personne tirée d'une histoire vraie, cinq questions, des cartes animées (chiffres, cartes du monde, comparaisons de taille, anatomie, frises), un monde dessiné en plan-séquence où l'animal vit, et quelques plans réels sous licence libre.
+Une usine à **documentaires animaliers en papier découpé**, dans le style des chaînes Oceanverse et Depth Theory : une accroche à la deuxième personne tirée d'une histoire vraie, cinq questions, des cartes animées (chiffres, cartes du monde, comparaisons de taille, anatomie, frises), un monde dessiné en plan-séquence où l'animal vit, et des **plans plein écran** : plans réels sous licence libre (sur tout ce que dit la voix, pas seulement l'animal) et images IA photo-réalistes pour ce qu'aucun plan libre ne montre.
 
-**Tu donnes un animal et une durée. La machine rend la vidéo 1080p et tout ce qu'il faut pour la poster** : faits sourcés sur Wikipédia, script, voix off ElevenLabs, storyboard vérifié automatiquement, plans réels libres avec crédits, rendu Remotion, musique Suno mixée à −14 LUFS, **contrôle d'écoute** de la vidéo finale, puis titre, description (chapitres, sources des faits et des images), tags et miniature.
+**Tu donnes un animal et une durée. La machine rend la vidéo 1080p et tout ce qu'il faut pour la poster** : faits sourcés sur Wikipédia, script, voix off ElevenLabs, storyboard vérifié automatiquement, plans réels libres avec crédits, rendu Remotion, musique Suno mixée à −14 LUFS, **contrôle d'écoute** de la vidéo finale, puis titre, description (chapitres, sources citées par nom de site, paragraphe fair use), tags de recherche et **miniature IA au code des chaînes concurrentes**.
 
 ![Quatre images d'une vidéo rendue par la machine (exemple hippopotame)](docs/apercu.jpg)
 
@@ -18,20 +18,20 @@ Une usine à **documentaires animaliers en papier découpé**, dans le style des
 | **2. Script** | Accroche « vous » (6-8 répliques), question-titre + sommaire, 5 chapitres « Question numéro N », CTA au milieu, fin en commentaire. La longueur est calculée sur le **débit mesuré** de la voix choisie (recalé à chaque run). Ton et rythme calqués sur l'exemple fourni. Puis une **relecture des faits** : chaque réplique est confrontée au registre, toute affirmation non sourcée est réécrite ou retirée. |
 | **3. Voix** | ElevenLabs réplique par réplique, avec l'alignement mot à mot ; resserrage des silences, fins de phrase propres, pauses ajustées pour tomber sur la durée visée. Les répliques déjà générées sont en cache. |
 | **4. Storyboard** | Le LLM n'écrit que des « beats » typés (carte, étiquette, scène du monde, plan réel) ancrés sur **un mot exact** de la voix. La mise en page est calculée. Le **vérificateur** (`remotion/scripts/d2-check.ts`) contrôle ancrages, durées de lecture, encombrement, longueur des textes et physique du monde image par image ; le storyboard est corrigé jusqu'à 0 anomalie. |
-| **5. Plans réels** | Plans **libres de droits** : Pexels, Pixabay, Wikimedia Commons. Crédits enregistrés automatiquement. Images IA seulement si tu l'autorises, en dernier recours. La part de plans réels est **mesurée** et affichée. Une planche de relecture de 24 images est rendue. Chaque plan est **regardé par un modèle de vision** avant d'être gardé : bonne espèce exacte (un buffle d'eau asiatique n'est pas un buffle d'Afrique), vraie vidéo, scène conforme, pas en captivité — sinon candidat suivant. Sous la cible, la machine complète ; si un plan est introuvable (ex. une attaque de lion), il est retiré plutôt que remplacé par un plan trompeur. |
+| **5. Plans plein écran** | **Images IA** (GPT Image 2.5 via Kie, 1K) pour ≈ 1 plan sur 3 — les scènes qu'aucun plan libre ne montre (une attaque, la nuit, un comportement précis) — et **plans réels libres** (Pexels, Pixabay, Wikimedia Commons) pour le reste, y compris hors espèce (une pirogue, un village, un safari). Plein écran, léger travelling, crédit « Source : Pexels ». Option **vidéo IA** : anime chaque image IA en 6 s (grok). La part plein écran est **mesurée** (réel % + IA %) et affichée. Planche de relecture : 1 image toutes les 3 s. Chaque plan est **regardé par un modèle de vision** avant d'être gardé : bonne espèce exacte (un buffle d'eau asiatique n'est pas un buffle d'Afrique), vraie vidéo, scène conforme, **nette et bien cadrée**, pas en captivité ni en enclos aménagé — sinon candidat suivant, puis image IA si autorisée. Sous la cible, la machine complète ; si un plan est introuvable (ex. une attaque de lion), il est retiré plutôt que remplacé par un plan trompeur. |
 | **6. Rendu** | Remotion, composition `Docu2D` (entrée séparée `remotion/src/docu2d.tsx` : ton `Root.tsx` n'est pas touché). |
 | **7. Mix** | Musique Suno enchaînée sur elle-même jusqu'à la fin, ducking sous la voix, −14 LUFS. Puis le **contrôle d'écoute** : début, milieu et fin de la vidéo finale sont transcrits (faster-whisper) et comparés au script. Une vidéo muette ou sans voix est refusée. |
-| **8. Packaging** | Titre aux formules de la niche, description (accroche, chapitres horodatés, sources des faits, sources des images), tags, miniature. La vidéo va au Stock ; publication YouTube privée par défaut (si tu l'actives). |
+| **8. Packaging** | Titre aux formules de la niche, description (accroche, chapitres horodatés, « Sources : Wikipédia, Pexels… » par nom de site sans lien, paragraphe fair use), tags de recherche (jamais de mots de fabrication), **miniature IA** : image GPT Image 2.5 guidée par les 2 miniatures les plus vues de ta banque de niche (gravure noir et blanc, animal énorme, humain minuscule, flèche rouge) + texte posé par Remotion (`*mot*` en rouge), recomposable depuis l'écran Fini. La vidéo va au Stock ; publication YouTube privée par défaut (si tu l'actives). |
 
 En **Semi-manuel** (par défaut), la machine s'arrête deux fois pour que tu valides : après le script, puis après le storyboard et les plans (avec la planche de relecture). En **100 % auto**, elle va jusqu'au bout. Chaque étape se reprend là où elle s'est arrêtée, ou se relance depuis une étape choisie.
 
 ## Réglages
 
-**À chaque vidéo** : le sujet (ou 💡 : 6 idées tirées des titres les plus vus de la niche), la famille (déduite du sujet), la durée (3 à 30 min, 10 par défaut), la langue (français, anglais, espagnol, allemand, portugais, italien), la voix ElevenLabs, la part de plans réels (0 à 40 %, 12 % par défaut), les sources (Pexels / Pixabay / Commons), les images IA de secours (non par défaut), la musique, le mode (Semi-manuel / 100 % auto), la publication automatique (chaîne + confidentialité).
+**À chaque vidéo** : le sujet (ou 💡 : 6 idées tirées des titres les plus vus de la niche), la famille (déduite du sujet), la durée (1 à 20 min, 10 par défaut ; 1 min = 2 questions, sans appel à l'action au milieu), la langue (français, anglais, espagnol, allemand, portugais, italien), la voix ElevenLabs, la part **plein écran** (10 à 70 %, 40 % par défaut — plans réels + images IA, le reste en motion design), les images IA (oui par défaut), la vidéo IA (non par défaut), les sources (Pexels / Pixabay / Commons), la musique, le mode (Semi-manuel / 100 % auto), la publication automatique (chaîne + confidentialité).
 
 **Voix** : George (voix publique ElevenLabs) par défaut ; la liste montre aussi les autres voix publiques, les voix de ton compte ElevenLabs et un champ pour coller n'importe quel ID de voix. « Ma voix clonée » utilise l'ID mis dans `Voix_Alex=` du fichier `.env` à la racine de ton Agent OS (le nom de la variable est historique ; mets-y l'ID de TA voix clonée).
 
-**Paramètres** (onglet 🛠) : la marque écrite en fin de description, la durée et la part de plans réels par défaut, le volume et le style de la musique.
+**Paramètres** (onglet 🛠) : la marque écrite en fin de description, la durée et la part plein écran par défaut, le volume et le style de la musique.
 
 ## Temps et coûts
 
@@ -44,7 +44,8 @@ Estimations de la machine elle-même (`POST /api/machines/docu2d/estimate`), ava
 | 20 min | ~16 500 caractères, 2,48 $ | 0,06 $ | 0,08 $ | **≈ 2,62 $** | ≈ 1 h 30 |
 
 - La voix est comptée au tarif public (0,15 $ / 1 000 caractères). **Si ton abonnement ElevenLabs couvre ces caractères, elle ne te coûte rien de plus** — vérifie juste ton quota mensuel : une vidéo de 10 min en consomme ~8 000.
-- Plans réels : gratuits (Pexels, Pixabay, Commons). Images IA de secours (si activées) : ~0,02 $ l'image via Kie.
+- Plans réels : gratuits (Pexels, Pixabay, Commons) ; contrôle par la vision ≈ 0,002 $ par candidat. Images IA : 0,03 $ l'image (≈ 1 plan plein écran sur 3). Vidéo IA (option) : ≈ 0,15 $ par plan animé. Miniature IA : 0,03 $. **Le devis détaillé s'affiche sous le bouton Générer et suit chaque option.**
+- Mesuré : **lion, 1 min = 0,67 $**, rendu 1,7 min.
 - Le temps est surtout celui du rendu Remotion : **mesuré ≈ 50 min pour la vidéo hippopotame de 10 min** (6 rendus en parallèle, sur le PC d'Alex occupé par d'autres tâches) — compte 4 à 5 min de rendu par minute de vidéo, moins sur une machine dédiée. Ajoute quelques minutes pour la voix, 1 à 4 passes de storyboard, la musique Suno (2 à 5 min) et le contrôle d'écoute. Au tout premier run, faster-whisper télécharge son modèle « small » (~500 Mo).
 
 ## Limites honnêtes de cette version (v1)
@@ -53,7 +54,7 @@ Estimations de la machine elle-même (`POST /api/machines/docu2d/estimate`), ava
 
 - **Bestiaire : 6 animaux à quatre pattes** — hippopotame, lion, éléphant, buffle, rhinocéros, crocodile. Tu peux traiter un autre animal terrestre : le LLM choisit la silhouette la plus proche pour le dessin (les plans réels, eux, montrent le vrai animal).
 - **Un seul monde : la savane** (plaine, berge, rivière avec troupeau). Les familles marin, insectes, oiseaux et phénomènes sont prévues pour les **phases suivantes** (grisées dans l'interface).
-- **Zéro vidéo IA** (choix de la recette de la niche) et **pas de fair use** : uniquement des plans sous licence libre, crédités.
+- **Vidéo IA limitée** (option, non par défaut) ; plans réels uniquement sous licence libre, crédités. Le paragraphe fair use figure toujours dans la description.
 - La planche de relecture écrit l'horodatage avec la police `C:/Windows/Fonts/arial.ttf` : sur macOS / Linux elle échoue (le run continue, sans planche).
 - Le contrôle d'écoute appelle la commande `python` : elle doit exister sous ce nom dans le PATH, avec `faster-whisper`.
 - Le texte est écrit par Qwen via OpenRouter (avec repli automatique sur le Claude CLI connecté à Agent OS). Comme tout LLM, il peut se tromper : relis le script à l'arrêt Semi-manuel. Les faits sont limités à Wikipédia et sourcés dans la description.
@@ -102,7 +103,8 @@ L'installateur copie les fichiers puis pose lui-même les branchements dans `ser
 | `pixabay` **ou** `pexels` | les plans réels libres | **obligatoire** (la machine refuse de démarrer sans) — Pixabay est gratuit : https://pixabay.com/api/docs/ |
 | `elevenlabs` | la voix off | **obligatoire** (ou `ELEVENLABS_API_KEY=` dans le `.env` racine) |
 | `openrouter` | faits, script, storyboard, packaging (Qwen) | fortement conseillé (sinon tout passe par le Claude CLI) |
-| `kie` | musique Suno, images IA de secours | conseillé (sans elle : vidéo sans musique) |
+| `kie` | images IA, miniature IA, vidéo IA (option), musique Suno | **fortement conseillé** (sans elle : ni images IA, ni miniature IA, ni musique) |
+| Google Drive connecté | rend publiques les miniatures concurrentes servies de référence à la miniature IA (et les images à animer en vidéo IA) | conseillé (sans lui : miniature IA sans référence de style) |
 | chaîne YouTube connectée | publication depuis la machine ou le Stock | facultatif |
 
 ### Ensuite
